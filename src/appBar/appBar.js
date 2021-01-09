@@ -67,7 +67,7 @@ export default function MenuAppBar(props) {
                       component={RouterLink}
                       to={location.pathname.split('/').slice(0, i + 1).join('/')}>{i === 0 ? 'Home' : subLoc}
                     </Button>
-                    { (location.pathname === '/' || location.pathname.split('/').length === i + 1) ? '' : <span>></span>}
+                    { (location.pathname === '/' || location.pathname.split('/').length === i + 1) ? '' : <span>&gt;</span>}
                   </React.Fragment>
                 )
               })
