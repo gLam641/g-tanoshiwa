@@ -12,14 +12,23 @@ import pekora from '../assets/pekora.png';
 const useStyles = makeStyles({
     root: {
         maxWidth: "100%",
+        height: '25rem'
     },
     cardMedia: {
         objectFit: "contain"
+    },
+    cardContent: {
+        height: '1rem',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
     }
 });
 
-export default function JournalCard() {
+export default function JournalCard(props) {
     const classes = useStyles();
+    const { title, content } = props.journalInfo;
+    const maxContentLength = 150;
 
     return (
         <Card className={classes.root}>
@@ -34,11 +43,10 @@ export default function JournalCard() {
                 />
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="h2">
-                        Lizard
+                        {title}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary" component="p">
-                        Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging
-                        across all continents except Antarctica
+                    <Typography className={classes.cardContent} variant="body2" color="textSecondary" component="p">
+                        {content}
                     </Typography>
                 </CardContent>
             </CardActionArea>
