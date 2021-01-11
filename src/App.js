@@ -15,9 +15,9 @@ import {
   Route
 } from 'react-router-dom';
 
-const contact = lazy(() => import('./contact/contact.js'));
-const journals = lazy(() => import('./journals/journals.js'));
-const home = lazy(() => import('./home/home.js'));
+const Contact = lazy(() => import('./contact/contact.js'));
+const Journals = lazy(() => import('./journals/journals.js'));
+const Home = lazy(() => import('./home/home.js'));
 
 function App() {
   const [themeColor, setThemeColor] = useState('light');
@@ -33,12 +33,19 @@ function App() {
       <div>
         <ThemeProvider theme={theme}>
           <MenuAppBar theme={{ themeColor, setThemeColor }} />
-          <Paper style={{ height: "100vh" }}>
+          {/* adjust height of MenuAppBar and Paper to avoid scrollbar*/}
+          <Paper style={{ height: "100%", boxShadow: "none" }}>
             <Suspense fallback={<div>Loading...</div>}>
               <RouterSwitch>
-                <Route path="/" exact component={home} />
-                <Route path="/journals" component={journals} />
-                <Route path="/contact" component={contact} />
+                <Route path="/" exact>
+                  <Home />
+                </Route>
+                <Route path="/journals">
+                  <Journals nJournals="6" />
+                </Route>
+                <Route path="/contact">
+                  <Contact />
+                </Route>
                 <Route path="*">
                   <div>Invalid path</div>
                 </Route>

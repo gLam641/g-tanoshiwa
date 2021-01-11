@@ -1,24 +1,15 @@
 import { useState, useEffect } from 'react';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
+import JournalCard from '../journalCard/journalCard.js';
 
 import {
-    Link as RouterLink,
     useLocation
 } from 'react-router-dom';
+import { Grid } from '@material-ui/core';
 
-const useStyles = makeStyles({
-    list: {
-        margin: '10px 0'
-    }
-});
-
-export default function Journals() {
+export default function Journals(props) {
     const [id, setId] = useState(0);
     const [isInit, setIsInit] = useState(false);
     const location = useLocation();
-    const classes = useStyles();
 
     let journals = [
         {
@@ -36,6 +27,52 @@ export default function Journals() {
             title: 'Post 2',
             content: 'Yo yo, this is third post.'
         },
+        {
+            id: 3,
+            title: 'Post 3',
+            content: '3'
+        },
+        {
+            id: 4,
+            title: 'Post 4',
+            content: '4'
+        },
+        {
+            id: 5,
+            title: 'Post 5',
+            content: '5'
+        },
+        {
+            id: 6,
+            title: 'Post 6',
+            content: '6'
+        },
+        {
+            id: 7,
+            title: 'Post 7',
+            content: '7'
+        },
+        {
+            id: 8,
+            title: 'Post 8',
+            content: '8'
+        },
+        {
+            id: 9,
+            title: 'Post 9',
+            content: '9'
+        },
+        {
+            id: 10,
+            title: 'Post 10',
+            content: '10'
+        },
+        {
+            id: 11,
+            title: 'Post 11',
+            content: '11'
+        },
+
     ];
 
     useEffect(() => {
@@ -46,31 +83,19 @@ export default function Journals() {
         setIsInit(true);
     }, [isInit, location]);
 
-    useEffect(() => {
-        console.log('journals effect', id, location);
-    });
-
     return (
         <>
-            <Typography variant="h1">Journals</Typography>
-            <ul>
-                {journals.map((journal) => {
-                    return (
-                        <li className={classes.list} key={journal.id} >
-                            <Button variant="contained" color="primary" component={RouterLink} to={`/journals/${journal.id}`} onClick={() => { setId(journal.id) }}>
-                                {journal.title}
-                            </Button>
-                        </li>
-                    )
-                })}
-            </ul>
-            <Typography variant="body1">
-                {
-                    location.pathname === '/journals' ?
-                        'Please select a topic' :
-                        journals[id].content
-                }
-            </Typography>
+            <Grid container>
+                <Grid container item alignItems="center" justify="center" spacing={8}>
+                    {journals.slice(0, Number(props.nJournals)).map((journal, i) => {
+                        return (
+                            <Grid item key={journal.id} xs={12} sm={6} md={4}>
+                                <JournalCard />
+                            </Grid>
+                        )
+                    })}
+                </Grid>
+            </Grid>
         </>
     );
 }
