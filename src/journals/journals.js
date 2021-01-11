@@ -1,15 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import JournalCard from '../journalCard/journalCard.js';
+import { makeStyles } from '@material-ui/core/styles';
 
-import {
-    useLocation
-} from 'react-router-dom';
 import { Grid } from '@material-ui/core';
+import Pagination from '@material-ui/lab/Pagination';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        flexGrow: 1,
+    },
+    paginationClass: {
+        padding: theme.spacing(4),
+    },
+    paper: {
+        padding: theme.spacing(2),
+        textAlign: 'center',
+        color: theme.palette.text.secondary,
+    },
+}));
 
 export default function Journals(props) {
-    const [id, setId] = useState(0);
-    const [isInit, setIsInit] = useState(false);
-    const location = useLocation();
+    const [page, setPage] = useState(1);
+    const nJournals = Number(props.nJournals);
+    const classes = useStyles();
 
     let journals = [
         {
@@ -72,22 +85,28 @@ export default function Journals(props) {
             title: 'Post 11',
             content: '11'
         },
-
+        {
+            id: 12,
+            title: 'Post 12',
+            content: '12'
+        },
     ];
 
-    useEffect(() => {
-        let id = 0;
-        if (location.pathname !== '/journals')
-            id = Number(location.pathname.split('/')[2]);
-        setId(id);
-        setIsInit(true);
-    }, [isInit, location]);
+    const maxPage = Math.ceil(journals.length / nJournals);
+
+    const PaginationChanged = (event, page) => {
+        setPage(page);
+        console.log((page - 1) * nJournals, (page - 1) * nJournals + nJournals);
+    };
 
     return (
         <>
-            <Grid container>
+            <Grid container className={classes.root}>
+                <Grid className={classes.paginationClass} container item justify="center" xs={12}>
+                    <Pagination count={maxPage} showFirstButton showLastButton variant="outlined" shape="rounded" onChange={PaginationChanged} />
+                </Grid>
                 <Grid container item alignItems="center" justify="center" spacing={8}>
-                    {journals.slice(0, Number(props.nJournals)).map((journal, i) => {
+                    {journals.slice((page - 1) * nJournals, (page - 1) * nJournals + nJournals).map((journal, i) => {
                         return (
                             <Grid item key={journal.id} xs={12} sm={6} md={4}>
                                 <JournalCard />

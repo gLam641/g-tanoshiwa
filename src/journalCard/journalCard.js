@@ -27,7 +27,7 @@ export default function JournalCard() {
                 <CardMedia
                     component="img"
                     alt="Pekora"
-                    height="300"
+                    height="250"
                     image={pekora}
                     className={classes.cardMedia}
                     title="Pekora"
