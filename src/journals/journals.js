@@ -1,76 +1,49 @@
-import { useState, useEffect } from 'react';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
+import { useState } from 'react';
+import JournalCard from '../journalCard/journalCard.js';
 import { makeStyles } from '@material-ui/core/styles';
 
-import {
-    Link as RouterLink,
-    useLocation
-} from 'react-router-dom';
+import { Grid } from '@material-ui/core';
+import Pagination from '@material-ui/lab/Pagination';
 
-const useStyles = makeStyles({
-    list: {
-        margin: '10px 0'
+import { journals } from '../assets/mock_journals';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        flexGrow: 1,
+    },
+    paginationClass: {
+        padding: theme.spacing(4),
     }
-});
+}));
 
-export default function Journals() {
-    const [id, setId] = useState(0);
-    const [isInit, setIsInit] = useState(false);
-    const location = useLocation();
+export default function Journals(props) {
+    const [page, setPage] = useState(1);
+    const nJournals = Number(props.nJournals);
     const classes = useStyles();
 
-    let journals = [
-        {
-            id: 0,
-            title: 'Post 0',
-            content: 'I am the first post. Yahoo!'
-        },
-        {
-            id: 1,
-            title: 'Post 1',
-            content: 'I am the second post, desu.'
-        },
-        {
-            id: 2,
-            title: 'Post 2',
-            content: 'Yo yo, this is third post.'
-        },
-    ];
+    const maxPage = Math.ceil(journals.length / nJournals);
 
-    useEffect(() => {
-        let id = 0;
-        if (location.pathname !== '/journals')
-            id = Number(location.pathname.split('/')[2]);
-        setId(id);
-        setIsInit(true);
-    }, [isInit, location]);
-
-    useEffect(() => {
-        console.log('journals effect', id, location);
-    });
+    const PaginationChanged = (event, page) => {
+        setPage(page);
+        console.log((page - 1) * nJournals, (page - 1) * nJournals + nJournals);
+    };
 
     return (
         <>
-            <Typography variant="h1">Journals</Typography>
-            <ul>
-                {journals.map((journal) => {
-                    return (
-                        <li className={classes.list} key={journal.id} >
-                            <Button variant="contained" color="primary" component={RouterLink} to={`/journals/${journal.id}`} onClick={() => { setId(journal.id) }}>
-                                {journal.title}
-                            </Button>
-                        </li>
-                    )
-                })}
-            </ul>
-            <Typography variant="body1">
-                {
-                    location.pathname === '/journals' ?
-                        'Please select a topic' :
-                        journals[id].content
-                }
-            </Typography>
+            <Grid container className={classes.root}>
+                <Grid className={classes.paginationClass} container item justify="center" xs={12}>
+                    <Pagination count={maxPage} showFirstButton showLastButton variant="outlined" shape="rounded" onChange={PaginationChanged} />
+                </Grid>
+                <Grid container item alignItems="center" justify="center" spacing={8}>
+                    {journals.slice((page - 1) * nJournals, (page - 1) * nJournals + nJournals).map((journal, i) => {
+                        return (
+                            <Grid item key={journal.id} xs={12} sm={6} md={4}>
+                                <JournalCard journalInfo={journal} />
+                            </Grid>
+                        )
+                    })}
+                </Grid>
+            </Grid>
         </>
     );
 }
