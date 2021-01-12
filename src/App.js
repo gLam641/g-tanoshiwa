@@ -5,8 +5,9 @@ import { Suspense, lazy } from 'react';
  *  findDOMNode is deprecated in StrictMode
  */
 import { ThemeProvider, unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles';
-import MenuAppBar from './appBar/appBar.js'
+import MenuAppBar from './appBar/appBar.js';
 import { Paper } from '@material-ui/core';
+import Journal from './journal/journal.js';
 
 import './App.css';
 import {
@@ -39,6 +40,9 @@ function App() {
               <RouterSwitch>
                 <Route path="/" exact>
                   <Home />
+                </Route>
+                <Route path="/journals/:id">
+                  <Journal />
                 </Route>
                 <Route path="/journals">
                   <Journals nJournals="6" />
