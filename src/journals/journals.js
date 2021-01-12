@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Grid } from '@material-ui/core';
 import Pagination from '@material-ui/lab/Pagination';
 
-import { journals } from '../assets/mock_jounals.js';
+import { journals } from '../assets/mock_journals';
 
 const useStyles = makeStyles((theme) => ({
     root: {
