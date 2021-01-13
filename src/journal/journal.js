@@ -24,7 +24,9 @@ export default function Journal() {
                     <Grid item xs={12}>
                         <Typography variant="h1">{title}</Typography>
                     </Grid>
-                    <ImageGallery images={images} id={id} xs={12} />
+                    <Grid item xs={12}>
+                        <ImageGallery images={images} id={id} />
+                    </Grid>
                     <Grid item xs={12}>
                         <Typography variant="body1">{content}</Typography>
                     </Grid>

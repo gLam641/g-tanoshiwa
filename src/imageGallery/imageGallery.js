@@ -11,7 +11,8 @@ const useStyles = makeStyles((theme) => ({
         backgroundColor: theme.palette.background.paper,
     },
     gridList: {
-        padding: '2em 5em'
+        padding: '2em 5em',
+        width: '100%'
     },
     imgClass: {
         objectFit: "contain",
@@ -30,7 +31,7 @@ export default function ImageGallery(props) {
             <GridList className={classes.gridList} cols={12} >
                 {
                     images.map((image, image_id) => (
-                        <GridListTile key={'journal_' + journalId + '_' + image_id} cols={3}>
+                        <GridListTile key={'journal_' + journalId + '_' + image_id} cols={4}>
                             <img className={classes.imgClass} src={image} alt={'journal_' + journalId + '_' + image_id} ></img>
                         </GridListTile>
                     ))
