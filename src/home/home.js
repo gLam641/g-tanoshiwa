@@ -1,45 +1,36 @@
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import Button from '@material-ui/core/Button';
+import { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Typography } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
+import axios from 'axios';
+import Journals from '../journals/journals.js';
 
-const useStyle = makeStyles({
-    homeBtn: {
-        background: (props) => props.background,
-        border: 0,
-        borderRadius: 3,
-        boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
-        color: 'white',
-        height: 48,
-        padding: '0 30px',
-    }
+const useStyles = makeStyles({
+    root: {
+        padding: '2em'
+    },
 });
 
 export default function Home() {
-    const location = useLocation();
-
-    const homeBtnProps = {
-        background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)'
-    };
-
-    const buttonStyle = useStyle(homeBtnProps);
+    let [journals, setJournals] = useState([]);
+    const classes = useStyles();
 
     useEffect(() => {
-        if (location.pathname === '/') {
-            // console.log('home');
-        }
-    })
+        axios.get('http://localhost:5000/journals/recent/3').then((resp) => {
+            setJournals(resp.data);
+        }).catch((err) => {
+            console.log(err);
+        });
+    }, []);
 
     return (
-        <>
-            <Typography variant="h1">This is the home page</Typography>
-
-            <Button variant="contained" className={buttonStyle.homeBtn}>
-                This is material button
-            </Button>
-
-            <Button color="primary" variant="contained">Primary Button</Button>
-        </>
+        <Grid className={classes.root} container>
+            <Grid item xs={12}>
+                <Typography variant="h2">Recent Journals:</Typography>
+            </Grid>
+            <Grid item xs={12}>
+                <Journals nJournals="3" journals={journals} hidePagination={true} />
+            </Grid>
+        </Grid>
     );
 };

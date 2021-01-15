@@ -1,25 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import JournalCard from '../journalCard/journalCard.js';
 import { makeStyles } from '@material-ui/core/styles';
-
 import { Grid } from '@material-ui/core';
 import Pagination from '@material-ui/lab/Pagination';
-
-import { journals } from '../assets/mock_journals';
+import axios from 'axios';
+import defaultImg from '../assets/pekora.png';
 
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
     },
-    paginationClass: {
+    paginationClass: props => ({
+        visibility: props.hidePagination ? 'hidden' : 'visible',
         padding: theme.spacing(4),
-    }
+    })
 }));
 
 export default function Journals(props) {
     const [page, setPage] = useState(1);
-    const nJournals = Number(props.nJournals);
-    const classes = useStyles();
+    let [journals, setJournals] = useState([]);
+    let { nJournals = 3, hidePagination = false } = props;
+    journals = journals.map((journal) => {
+        if (!journal.images || journal.images === []) {
+            journal.images = [defaultImg];
+        }
+        return journal;
+    });
+    nJournals = Number(nJournals);
+    const classes = useStyles({ hidePagination });
 
     const maxPage = Math.ceil(journals.length / nJournals);
 
@@ -27,6 +35,18 @@ export default function Journals(props) {
         setPage(page);
         console.log((page - 1) * nJournals, (page - 1) * nJournals + nJournals);
     };
+
+    useEffect(() => {
+        if (props.journals) {
+            setJournals(props.journals);
+        } else {
+            axios.get('http://localhost:5000/journals/').then((resp) => {
+                setJournals(resp.data);
+            }).catch((err) => {
+                console.log(err);
+            });
+        }
+    }, [props.journals]);
 
     return (
         <>
