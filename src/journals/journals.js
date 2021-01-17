@@ -20,12 +20,6 @@ export default function Journals(props) {
     const [page, setPage] = useState(1);
     let [journals, setJournals] = useState([]);
     let { nJournals = 3, hidePagination = false } = props;
-    journals = journals.map((journal) => {
-        if (!journal.images || journal.images === []) {
-            journal.images = [defaultImg];
-        }
-        return journal;
-    });
     nJournals = Number(nJournals);
     const classes = useStyles({ hidePagination });
 
