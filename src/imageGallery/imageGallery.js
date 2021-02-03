@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 export default function ImageGallery(props) {
-    const { id: journalId, images } = props;
+    const { id: journalId = "-", images } = props;
     const classes = useStyles();
 
     return (

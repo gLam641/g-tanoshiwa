@@ -9,6 +9,8 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import { Link as RouterLink } from 'react-router-dom';
 
+import defaultImage from '../assets/pekora.png';
+
 const useStyles = makeStyles({
     root: {
         maxWidth: "100%",
@@ -27,7 +29,7 @@ const useStyles = makeStyles({
 
 export default function JournalCard(props) {
     const classes = useStyles();
-    const { id, title, content, images } = props.journalInfo;
+    const { _id: id, title, content, images } = props.journalInfo;
 
     return (
         <Card className={classes.root}>
@@ -36,7 +38,7 @@ export default function JournalCard(props) {
                     component="img"
                     alt="Pekora"
                     height="250"
-                    image={images[0]}
+                    image={images && images.length > 0 ? images[0] : defaultImage}
                     className={classes.cardMedia}
                     title="Pekora"
                 />
