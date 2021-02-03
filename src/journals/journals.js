@@ -85,7 +85,6 @@ export default function Journals(props) {
                 </Grid>
                 <Grid container item alignItems="center" justify="center" spacing={8}>
                     {journals.map((journal, i) => {
-                        // {journals.slice((page - 1) * nJournals, (page - 1) * nJournals + nJournals).map((journal, i) => {
                         return (
                             <Grid item key={journal._id} xs={12} sm={6} md={4}>
                                 <JournalCard journalInfo={journal} />
