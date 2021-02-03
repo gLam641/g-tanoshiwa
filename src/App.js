@@ -8,6 +8,7 @@ import { ThemeProvider, unstable_createMuiStrictModeTheme as createMuiTheme } fr
 import MenuAppBar from './appBar/appBar.js';
 import { Paper } from '@material-ui/core';
 import Journal from './journal/journal.js';
+import JournalForm from './journalForm/journalForm.js';
 
 import './App.css';
 import {
@@ -40,6 +41,9 @@ function App() {
               <RouterSwitch>
                 <Route path="/" exact>
                   <Home />
+                </Route>
+                <Route path="/journals/new">
+                  <JournalForm />
                 </Route>
                 <Route path="/journals/:id">
                   <Journal />

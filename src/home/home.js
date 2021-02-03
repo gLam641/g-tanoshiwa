@@ -17,7 +17,7 @@ export default function Home() {
 
     useEffect(() => {
         axios.get('http://localhost:5000/journals/recent/3').then((resp) => {
-            setJournals(resp.data);
+            setJournals(resp.data.journals);
         }).catch((err) => {
             console.log(err);
         });
@@ -29,7 +29,7 @@ export default function Home() {
                 <Typography variant="h2">Recent Journals:</Typography>
             </Grid>
             <Grid item xs={12}>
-                <Journals nJournals="3" journals={journals} hidePagination={true} />
+                <Journals nJournals="3" journals={journals} />
             </Grid>
         </Grid>
     );
