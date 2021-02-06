@@ -29,6 +29,9 @@ const useStyles = makeStyles((theme) => ({
     color: 'white',
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2)
+  },
+  themeSwitchClass: {
+    display: 'none'
   }
 }));
 
@@ -73,7 +76,7 @@ export default function MenuAppBar(props) {
               })
             }
           </Typography>
-          <Switch checked={props.theme.themeColor === "dark"} onChange={() => props.theme.setThemeColor(props.theme.themeColor === 'light' ? 'dark' : 'light')} />
+          <Switch className={classes.themeSwitchClass} checked={props.theme.themeColor === "dark"} onChange={() => props.theme.setThemeColor(props.theme.themeColor === 'light' ? 'dark' : 'light')} />
           <FormGroup>
             <FormControlLabel
               control={<Switch checked={auth} onChange={handleChange} aria-label="login switch" />}
