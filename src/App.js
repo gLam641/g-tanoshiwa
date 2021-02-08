@@ -19,10 +19,13 @@ import {
 
 const Contact = lazy(() => import('./contact/contact.js'));
 const Journals = lazy(() => import('./journals/journals.js'));
+const Login = lazy(() => import('./login/login.js'));
+const Register = lazy(() => import('./register/register.js'));
 const Home = lazy(() => import('./home/home.js'));
 
 function App() {
   const [themeColor, setThemeColor] = useState('light');
+  const [user, setUser] = useState();
 
   const theme = createMuiTheme({
     palette: {
@@ -34,7 +37,7 @@ function App() {
     <Router>
       <div>
         <ThemeProvider theme={theme}>
-          <MenuAppBar theme={{ themeColor, setThemeColor }} />
+          <MenuAppBar user={user} setUser={setUser} theme={{ themeColor, setThemeColor }} />
           {/* adjust height of MenuAppBar and Paper to avoid scrollbar*/}
           <Paper style={{ height: "100%", boxShadow: "none" }}>
             <Suspense fallback={<div>Loading...</div>}>
@@ -53,6 +56,12 @@ function App() {
                 </Route>
                 <Route path="/contact">
                   <Contact />
+                </Route>
+                <Route path="/login">
+                  <Login setUser={setUser} />
+                </Route>
+                <Route path="/register">
+                  <Register />
                 </Route>
                 <Route path="*">
                   <div>Invalid path</div>

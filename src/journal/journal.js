@@ -32,16 +32,21 @@ export default function Journal() {
 
     useEffect(() => {
         if (id) {
-            axios.get(`http://localhost:5000/journals/${id}`).then((resp) => {
+            axios.get(`http://localhost:5000/journals/${id}`, {
+                headers: {
+                    withCredentials: true
+                }
+            }).then((resp) => {
                 if (!resp.data.images || resp.data.images.length === 0) {
                     resp.data.images = [defaultImg];
                 }
                 setJournal(resp.data);
             }).catch((err) => {
-                console.log(err);
+                // todo: show message that the user needs to be logged in
+                history.push('/');
             });
         }
-    }, [id]);
+    }, [id, history]);
 
     return (
         <>

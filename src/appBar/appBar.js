@@ -7,13 +7,12 @@ import IconButton from '@material-ui/core/IconButton';
 import NavDrawer from '../navDrawer/navDrawer.js';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import Switch from '@material-ui/core/Switch';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormGroup from '@material-ui/core/FormGroup';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import { useLocation } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useHistory } from 'react-router-dom';
+import axios from 'axios';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -35,17 +34,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function MenuAppBar(props) {
+export default function MenuAppBar({ user = null, setUser, theme }) {
   const classes = useStyles();
-  const [auth, setAuth] = React.useState(true);
+  const history = useHistory();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
   const location = useLocation();
-
-  const handleChange = (event) => {
-    setAuth(event.target.checked);
-  };
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -53,6 +48,20 @@ export default function MenuAppBar(props) {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    if (user) {
+      axios.get('http://localhost:5000/user/logout').then((resp) => {
+        if (resp.status === 200) {
+          setUser(null);
+          handleClose();
+          history.push('/');
+        }
+      }).catch((err) => {
+        console.log(err);
+      });
+    }
   };
 
   return (
@@ -76,44 +85,41 @@ export default function MenuAppBar(props) {
               })
             }
           </Typography>
-          <Switch className={classes.themeSwitchClass} checked={props.theme.themeColor === "dark"} onChange={() => props.theme.setThemeColor(props.theme.themeColor === 'light' ? 'dark' : 'light')} />
-          <FormGroup>
-            <FormControlLabel
-              control={<Switch checked={auth} onChange={handleChange} aria-label="login switch" />}
-              label={auth ? 'Logout' : 'Login'}
-            />
-          </FormGroup>
-          {auth && (
-            <div>
-              <IconButton
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-                color="inherit"
-              >
-                <AccountCircle />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={open}
-                onClose={handleClose}
-              >
-                <MenuItem onClick={handleClose}>Profile</MenuItem>
-                <MenuItem onClick={handleClose}>My account</MenuItem>
-              </Menu>
-            </div>
-          )}
+          <Switch className={classes.themeSwitchClass} checked={theme.themeColor === "dark"} onChange={() => theme.setThemeColor(theme.themeColor === 'light' ? 'dark' : 'light')} />
+          <Typography variant="h6" className={classes.welcome}>
+            Welcome! {user ? user.name : 'Guest'}
+          </Typography>
+          <div>
+            <IconButton
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleMenu}
+              color="inherit"
+            >
+              <AccountCircle />
+            </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={open}
+              onClose={handleClose}
+            >
+              {user && <MenuItem onClick={handleClose}>Profile</MenuItem>}
+              {user && <MenuItem onClick={handleLogout}>Logout</MenuItem>}
+              {!user && <MenuItem onClick={handleClose} component={RouterLink} to="/login">Login</MenuItem>}
+              {!user && <MenuItem onClick={handleClose} component={RouterLink} to="/register">Register</MenuItem>}
+            </Menu>
+          </div>
         </Toolbar>
       </AppBar>
     </div >
