@@ -8,6 +8,10 @@ import { useHistory } from 'react-router-dom';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import React from 'react';
+import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import Visibility from '@material-ui/icons/Visibility';
+import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 const Alert = React.forwardRef((props, ref) => {
     return <MuiAlert ref={ref} elevation={6} variant="filled" {...props} />;
@@ -43,6 +47,8 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isConfirmPasswordValid, setIsConfirmPasswordValid] = useState(false);
     const [confirmPasswordHelper, setConfirmPasswordHelper] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const classes = useStyles();
     const history = useHistory();
@@ -88,6 +94,22 @@ export default function Register() {
             password && password !== "" &&
             confirmPassword && confirmPassword !== "" &&
             password === confirmPassword;
+    };
+
+    const handleClickShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const handleMouseDownPassword = (event) => {
+        event.preventDefault();
+    };
+
+    const handleClickShowConfirmPassword = () => {
+        setShowConfirmPassword(!showConfirmPassword);
+    };
+
+    const handleMouseDownConfirmPassword = (event) => {
+        event.preventDefault();
     };
 
     const onSubmit = (ev) => {
@@ -158,19 +180,47 @@ export default function Register() {
                         <TextField
                             id="password"
                             label="Password"
+                            type={showPassword ? 'text' : 'password'}
                             error={!isPasswordValid}
                             onChange={(ev) => { onFieldChange(ev, setPassword) }}
                             variant="outlined"
                             helperText={passwordHelper}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={handleClickShowPassword}
+                                            onMouseDown={handleMouseDownPassword}
+                                        >
+                                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
                             required
                         />
                         <TextField
                             id="confirmPassword"
                             label="Confirm Password"
+                            type={showConfirmPassword ? 'text' : 'password'}
                             error={!isConfirmPasswordValid}
                             onChange={(ev) => { onFieldChange(ev, setConfirmPassword) }}
                             variant="outlined"
                             helperText={confirmPasswordHelper}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={handleClickShowConfirmPassword}
+                                            onMouseDown={handleMouseDownConfirmPassword}
+                                        >
+                                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
                             required
                         />
                         <Button
