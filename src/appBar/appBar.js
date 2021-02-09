@@ -32,7 +32,10 @@ const useStyles = makeStyles((theme) => ({
   navButton: {
     color: 'white',
     marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2)
+    marginRight: theme.spacing(2),
+    '&:hover span': {
+      textDecoration: 'underline'
+    }
   },
   themeSwitchClass: {
     display: 'none'
