@@ -26,7 +26,7 @@ export default function Home() {
     return (
         <Grid className={classes.root} container>
             <Grid item xs={12}>
-                <Typography variant="h2">Recent Journals:</Typography>
+                <Typography variant="h1">Recent Journals:</Typography>
             </Grid>
             <Grid item xs={12}>
                 <Journals nJournals="3" journals={journals} />
