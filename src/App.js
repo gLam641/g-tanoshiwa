@@ -55,7 +55,7 @@ function App() {
                   <Journals nJournals="6" />
                 </Route>
                 <Route path="/contact">
-                  <Contact />
+                  <Contact userEmail={user ? user.email : ""} />
                 </Route>
                 <Route path="/login">
                   <Login setUser={setUser} />

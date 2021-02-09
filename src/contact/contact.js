@@ -32,12 +32,12 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function Contact() {
+export default function Contact({ userEmail = "" }) {
     const [snackBarMessage, setSnackBarMessage] = useState("");
     const [snackBarSeverity, setSnackBarSeverity] = useState("success");
     const [content, setContent] = useState("");
     const [contentHelper, setContentHelper] = useState("");
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(userEmail);
 
     const classes = useStyles();
     const history = useHistory();
@@ -121,6 +121,7 @@ export default function Contact() {
                             error={!email}
                             onChange={onEmailChange}
                             variant="outlined"
+                            defaultValue={email}
                             required
                         />
                         <TextField

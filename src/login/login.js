@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { Grid, Button } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
@@ -7,7 +8,10 @@ import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
-import React from 'react';
+import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import Visibility from '@material-ui/icons/Visibility';
+import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 axios.defaults.withCredentials = true;
 
@@ -39,6 +43,7 @@ export default function Login({ setUser }) {
     const [snackBarSeverity, setSnackBarSeverity] = useState("success");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const classes = useStyles();
     const history = useHistory();
@@ -52,10 +57,17 @@ export default function Login({ setUser }) {
         }
     };
 
-
     const isFormValid = () => {
         return email && email !== "" &&
             password && password !== "";
+    };
+
+    const handleClickShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const handleMouseDownPassword = (event) => {
+        event.preventDefault();
     };
 
     const onSubmit = (ev) => {
@@ -118,9 +130,23 @@ export default function Login({ setUser }) {
                         <TextField
                             id="password"
                             label="Password"
+                            type={showPassword ? 'text' : 'password'}
                             error={!password}
                             onChange={(ev) => { onFieldChange(ev, setPassword) }}
                             variant="outlined"
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={handleClickShowPassword}
+                                            onMouseDown={handleMouseDownPassword}
+                                        >
+                                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
                             required
                         />
                         <Button
