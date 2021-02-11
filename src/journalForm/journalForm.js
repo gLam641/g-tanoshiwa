@@ -72,7 +72,6 @@ export default function JournalForm() {
 
     const onImageUploadChange = (ev) => {
         const newImages = ev.target.files;
-        console.log(ev);
         if (newImages && newImages !== []) {
             setImages(newImages);
         } else {
@@ -82,9 +81,7 @@ export default function JournalForm() {
 
     const onSubmit = (ev) => {
         ev.preventDefault();
-        // TODO: replace hard coded values when available
         const form = new FormData();
-        form.append('userId', 0);
         form.append('privacy', 'public');
         form.append('title', title);
         [...images].forEach((image) => {
@@ -98,7 +95,6 @@ export default function JournalForm() {
                 'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
             }
         }).then((resp) => {
-            console.log(resp);
             if (resp.status === 201) {
                 history.push('/journals');
             } else if (resp.status === 200) {
@@ -108,24 +104,6 @@ export default function JournalForm() {
         }).catch((err) => {
             console.log('Failed to create new journal', err);
         });
-
-        // axios.post('http://localhost:5000/journals/', {
-        //     userId: 0,
-        //     privacy: 'public',
-        //     title: title,
-        //     images: images,
-        //     content: content
-        // }).then((resp) => {
-        //     console.log(resp);
-        //     if (resp.status === 201) {
-        //         history.push('/journals');
-        //     } else if (resp.status === 200) {
-        //         // an existing journal with the same title by this user already exists
-        //         setIsSnackbarOpen(true);
-        //     }
-        // }).catch((err) => {
-        //     console.log('Failed to create new journal', err);
-        // });
     };
 
     const closeSnackbar = (event, reason) => {

@@ -19,6 +19,7 @@ import {
 
 const Contact = lazy(() => import('./contact/contact.js'));
 const Journals = lazy(() => import('./journals/journals.js'));
+const Profile = lazy(() => import('./profile/profile.js'));
 const Login = lazy(() => import('./login/login.js'));
 const Register = lazy(() => import('./register/register.js'));
 const Home = lazy(() => import('./home/home.js'));
@@ -57,11 +58,14 @@ function App() {
                 <Route path="/contact">
                   <Contact userEmail={user ? user.email : ""} />
                 </Route>
+                <Route path="/profile">
+                  <Profile user={user} setUser={setUser} />
+                </Route>
                 <Route path="/login">
                   <Login setUser={setUser} />
                 </Route>
                 <Route path="/register">
-                  <Register />
+                  <Register setUser={setUser} />
                 </Route>
                 <Route path="*">
                   <div>Invalid path</div>

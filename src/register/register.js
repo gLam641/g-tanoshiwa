@@ -30,13 +30,22 @@ const useStyles = makeStyles((theme) => ({
             width: "100%",
         },
     },
+    imageUploadClass: {
+        marginTop: '1em',
+        marginLeft: '8px',
+        display: 'inline-block'
+    },
     submitClass: {
         marginTop: '2em',
-        marginLeft: '8px'
+        marginLeft: '8px',
+        display: 'block'
+    },
+    input: {
+        display: 'none'
     }
 }));
 
-export default function Register() {
+export default function Register({ setUser }) {
     const [snackBarMessage, setSnackBarMessage] = useState("");
     const [snackBarSeverity, setSnackBarSeverity] = useState("success");
     const [name, setName] = useState("");
@@ -49,6 +58,7 @@ export default function Register() {
     const [confirmPasswordHelper, setConfirmPasswordHelper] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [image, setImage] = useState("");
 
     const classes = useStyles();
     const history = useHistory();
@@ -112,19 +122,36 @@ export default function Register() {
         event.preventDefault();
     };
 
+    const onImageUploadChange = (ev) => {
+        const newImage = ev.target.files[0];
+        if (newImage && newImage !== "") {
+            setImage(newImage);
+        } else {
+            setImage("");
+        }
+    }
+
     const onSubmit = (ev) => {
         ev.preventDefault();
 
         if (isFormValid()) {
-            axios.post('http://localhost:5000/user/register', {
-                name,
-                email,
-                password,
-                confirmPassword,
+            const form = new FormData();
+            form.append('name', name);
+            form.append('email', email);
+            form.append('password', password);
+            form.append('confirmPassword', confirmPassword);
+            if (image) form.append('image', image, image.name);
+            axios.post('http://localhost:5000/user/register', form, {
+                headers: {
+                    'accept': 'application/json',
+                    'Accept-Language': 'en-US,en;q=0.8',
+                    'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
+                }
             }).then((resp) => {
                 if (resp.status === 200) {
                     setSnackBarMessage(`You have successfully registered! Welcome ${name}`);
                     setSnackBarSeverity("success");
+                    setUser(resp.data.user);
                     setTimeout(() => {
                         history.push('/');
                     }, 2000);
@@ -223,6 +250,19 @@ export default function Register() {
                             }}
                             required
                         />
+                        <input
+                            accept="image/*"
+                            className={classes.input}
+                            id="upload-image"
+                            type="file"
+                            onChange={onImageUploadChange}
+                        />
+                        <label className={classes.imageUploadClass} htmlFor="upload-image">
+                            <Button variant="contained" color="primary" component="span">
+                                Upload profile image
+                                </Button>
+                        </label>
+                        <Typography className={classes.imageUploadClass}>{image ? image.name : ""}</Typography>
                         <Button
                             className={classes.submitClass}
                             color="primary"
