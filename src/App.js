@@ -65,7 +65,7 @@ function App() {
                   <Login setUser={setUser} />
                 </Route>
                 <Route path="/register">
-                  <Register />
+                  <Register setUser={setUser} />
                 </Route>
                 <Route path="*">
                   <div>Invalid path</div>

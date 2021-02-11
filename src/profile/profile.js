@@ -37,9 +37,17 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: '8px',
         display: 'block'
     },
+    imageUploadClass: {
+        marginLeft: '8px',
+        display: 'inline-block'
+    },
     submitClass: {
-        marginTop: '1em',
-        marginLeft: '8px'
+        marginTop: '2em',
+        marginLeft: '8px',
+        display: 'block'
+    },
+    input: {
+        display: 'none'
     }
 }));
 
@@ -96,20 +104,24 @@ export default function Profile({ user = null, setUser = null }) {
         ev.preventDefault();
 
         if (isFormValid()) {
-            let body = {
-                name,
-                image,
-                password
-            };
-
-            if (isNewPassword) {
-                body = Object.assign(body, {
-                    newPassword,
-                    newPassword2
-                });
+            const form = new FormData();
+            form.append('name', name);
+            form.append('password', password);
+            if (image && image !== "") {
+                console.log(image);
+                form.append('image', image, image.name);
             }
-
-            axios.post('http://localhost:5000/user', body).then((resp) => {
+            if (isNewPassword) {
+                form.append('newPassword', newPassword);
+                form.append('newPassword2', newPassword2);
+            }
+            axios.post('http://localhost:5000/user', form, {
+                headers: {
+                    'accept': 'application/json',
+                    'Accept-Language': 'en-US,en;q=0.8',
+                    'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
+                }
+            }).then((resp) => {
                 if (resp.status === 200) {
                     setSnackBarMessage(`Your profile has been updated successfully!`);
                     setSnackBarSeverity("success");
@@ -136,6 +148,15 @@ export default function Profile({ user = null, setUser = null }) {
         setSnackBarMessage("");
     };
 
+    const onImageUploadChange = (ev) => {
+        const newImage = ev.target.files[0];
+        if (newImage && newImage !== "") {
+            setImage(newImage);
+        } else {
+            setImage("");
+        }
+    }
+
     // Get user profile info from server
     useEffect(() => {
         if (user) {
@@ -143,7 +164,6 @@ export default function Profile({ user = null, setUser = null }) {
                 .then((resp) => {
                     if (resp.status === 200) {
                         setName(resp.data.name);
-                        setImage(resp.data.profileImage);
                     }
                 }).catch((err) => {
                     setSnackBarMessage(`Failed to get user info from server: ${err.response.data.msg.message}`);
@@ -255,6 +275,19 @@ export default function Profile({ user = null, setUser = null }) {
                                 />}
                             label="Set new Password"
                         />
+                        <input
+                            accept="image/*"
+                            className={classes.input}
+                            id="upload-image"
+                            type="file"
+                            onChange={onImageUploadChange}
+                        />
+                        <label className={classes.imageUploadClass} htmlFor="upload-image">
+                            <Button variant="contained" color="primary" component="span">
+                                Upload profile image
+                                </Button>
+                        </label>
+                        <Typography className={classes.imageUploadClass}>{image ? image.name : ""}</Typography>
                         <Button
                             className={classes.submitClass}
                             color="primary"
