@@ -127,7 +127,7 @@ export default function MenuAppBar({ user = null, setUser, theme }) {
               open={open}
               onClose={handleClose}
             >
-              {user && <MenuItem onClick={handleClose}>Profile</MenuItem>}
+              {user && <MenuItem onClick={handleClose} component={RouterLink} to="/profile">Profile</MenuItem>}
               {user && <MenuItem onClick={handleLogout}>Logout</MenuItem>}
               {!user && <MenuItem onClick={handleClose} component={RouterLink} to="/login">Login</MenuItem>}
               {!user && <MenuItem onClick={handleClose} component={RouterLink} to="/register">Register</MenuItem>}

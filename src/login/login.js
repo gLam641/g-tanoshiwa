@@ -81,7 +81,6 @@ export default function Login({ setUser }) {
                 if (resp.status === 200) {
                     setSnackBarMessage(`You have successfully logged in!`);
                     setSnackBarSeverity("success");
-                    sessionStorage.setItem('session_id', resp.data.user.session_id);
                     setUser(resp.data.user);
                     setTimeout(() => {
                         history.push('/');
