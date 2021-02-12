@@ -23,9 +23,9 @@ const useStyles = makeStyles((theme) => ({
     }),
 }));
 
-export default function Journals({ propJournals = [], nJournals, user = null }) {
+export default function Journals({ nJournals, user = null }) {
     const location = useLocation();
-    const [journals, setJournals] = useState(propJournals);
+    const [journals, setJournals] = useState([]);
     const [hideNew, setHideNew] = useState(true);
     const [hidePagination, setHidePagination] = useState(true);
     const [hideControls, setHideControls] = useState(true);
@@ -51,15 +51,13 @@ export default function Journals({ propJournals = [], nJournals, user = null }) 
     }, [location.pathname, user]);
 
     useEffect(() => {
-        if (journals.length === 0) {
-            axios.get(`http://localhost:5000/journals/recent/${nJournals}`).then((resp) => {
-                setJournals(resp.data.journals);
-                setMaxJournalsCount(resp.data.maxJournalsCount);
-            }).catch((err) => {
-                console.log(err);
-            });
-        }
-    }, [journals, nJournals]);
+        axios.get(`http://localhost:5000/journals/recent/${nJournals}`).then((resp) => {
+            setJournals(resp.data.journals);
+            setMaxJournalsCount(resp.data.maxJournalsCount);
+        }).catch((err) => {
+            console.log(err);
+        });
+    }, [user, nJournals]);
 
     return (
         <>

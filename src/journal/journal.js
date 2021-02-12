@@ -64,16 +64,16 @@ export default function Journal({ user = null }) {
                     journal ?
                         <Grid container item spacing={4}>
                             <Grid container item xs={12}>
-                                <Grid container item justify="flex-start" xs={8}>
+                                <Grid container item justify="flex-start" xs={10}>
                                     <Typography variant="h1">{journal.title}</Typography>
                                 </Grid>
-                                <Grid className={classes.deleteClass} container item justify="flex-end" alignItems="center" sm={4}>
+                                <Grid className={classes.deleteClass} container item justify="flex-end" alignItems="center" sm={2}>
                                     <Button
                                         variant="contained"
                                         color="secondary"
                                         onClick={onDelete}
                                         startIcon={<DeleteIcon />}>
-                                        Delete Journal
+                                        Delete
                                     </Button>
                                 </Grid>
                             </Grid>

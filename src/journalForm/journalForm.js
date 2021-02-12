@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Grid, Button } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
@@ -7,6 +7,8 @@ import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -34,16 +36,21 @@ const useStyles = makeStyles((theme) => ({
     },
     input: {
         display: 'none'
+    },
+    visibilityClass: {
+        marginLeft: '8px',
+        display: 'inline-block'
     }
 }));
 
-export default function JournalForm() {
+export default function JournalForm({ user = null }) {
     const [title, setTitle] = useState("");
     const [titleHelper, setTitleHelper] = useState("");
     const [content, setContent] = useState("");
     const [contentHelper, setContentHelper] = useState("");
     const [images, setImages] = useState([]);
     const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
+    const [isPrivate, setIsPrivate] = useState(true);
 
     const classes = useStyles();
     const history = useHistory();
@@ -82,7 +89,7 @@ export default function JournalForm() {
     const onSubmit = (ev) => {
         ev.preventDefault();
         const form = new FormData();
-        form.append('privacy', 'public');
+        form.append('privacy', isPrivate ? 'private' : 'public');
         form.append('title', title);
         [...images].forEach((image) => {
             form.append('images', image, image.name)
@@ -114,6 +121,10 @@ export default function JournalForm() {
         setIsSnackbarOpen(false);
     };
 
+    useEffect(() => {
+        if (user === null) history.push('/');
+    }, [user, history]);
+
     return (
         <Grid container className={classes.root}>
             <Snackbar open={isSnackbarOpen} autoHideDuration={6000} onClose={closeSnackbar}>
@@ -128,6 +139,24 @@ export default function JournalForm() {
                 <form
                     className={classes.formClass} noValidate autoComplete="off">
                     <div>
+                        <Grid container alignItems="center" alignContent="center" justify="flex-start">
+                            <Grid item xs={8}>
+                                <Typography className={classes.visibilityClass} variant="h6">Visibility: </Typography>
+                            </Grid>
+                            <Grid container item xs={4} justify="flex-end">
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={isPrivate}
+                                            onChange={(ev) => { setIsPrivate(!isPrivate) }}
+                                            name={isPrivate ? 'Private' : 'Public'}
+                                            color="primary"
+                                        />
+                                    }
+                                    label={isPrivate ? 'Private' : 'Public'}
+                                />
+                            </Grid>
+                        </Grid>
                         <TextField
                             id="title"
                             label="Title"

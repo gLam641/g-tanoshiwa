@@ -44,10 +44,10 @@ function App() {
             <Suspense fallback={<div>Loading...</div>}>
               <RouterSwitch>
                 <Route path="/" exact>
-                  <Home />
+                  <Home user={user} />
                 </Route>
                 <Route path="/journals/new">
-                  <JournalForm />
+                  <JournalForm user={user} />
                 </Route>
                 <Route path="/journals/:id">
                   <Journal user={user} />
