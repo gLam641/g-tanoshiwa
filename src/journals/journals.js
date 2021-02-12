@@ -18,7 +18,10 @@ const useStyles = makeStyles((theme) => ({
     paginationClass: props => ({
         visibility: props.hidePagination ? 'hidden' : 'visible',
     }),
-    newClass: props => ({
+    newControlsClass: props => ({
+        paddingTop: theme.spacing(4),
+        paddingRight: theme.spacing(4),
+        display: props.hideNew ? 'none' : 'flex',
         visibility: props.hideNew ? 'hidden' : 'visible',
     }),
 }));
@@ -51,23 +54,24 @@ export default function Journals({ nJournals, user = null }) {
     }, [location.pathname, user]);
 
     useEffect(() => {
+        let isMounted = true;
         axios.get(`http://localhost:5000/journals/recent/${nJournals}`).then((resp) => {
-            setJournals(resp.data.journals);
-            setMaxJournalsCount(resp.data.maxJournalsCount);
+            if (isMounted) {
+                setJournals(resp.data.journals);
+                setMaxJournalsCount(resp.data.maxJournalsCount);
+            }
         }).catch((err) => {
             console.log(err);
         });
+        return () => { isMounted = false; };
     }, [user, nJournals]);
 
     return (
         <>
             <Grid container className={classes.root}>
-                <Grid className={classes.controlsClass} container item xs={12}>
-                    <Grid item xs={4}></Grid>
-                    <Grid className={classes.paginationClass} container item justify="center" alignItems="center" xs={4}>
-                        <Pagination count={maxPage} showFirstButton showLastButton variant="outlined" shape="rounded" onChange={PaginationChanged} />
-                    </Grid>
-                    <Grid className={classes.newClass} container item justify="flex-end" xs={4}>
+                <Grid className={classes.newControlsClass} container item xs={12}>
+                    <Grid item xs={8}></Grid>
+                    <Grid container item justify="flex-end" xs={4}>
                         <Button
                             variant="contained"
                             color="primary"
@@ -77,6 +81,13 @@ export default function Journals({ nJournals, user = null }) {
                             New Journal
                         </Button>
                     </Grid>
+                </Grid>
+                <Grid className={classes.controlsClass} container item xs={12}>
+                    <Grid item xs={4}></Grid>
+                    <Grid className={classes.paginationClass} container item justify="center" alignItems="center" xs={4}>
+                        <Pagination count={maxPage} showFirstButton showLastButton variant="outlined" shape="rounded" onChange={PaginationChanged} />
+                    </Grid>
+                    <Grid item xs={4}></Grid>
                 </Grid>
                 <Grid container item alignItems="center" justify="center" spacing={8}>
                     {journals.map((journal, i) => {
