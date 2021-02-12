@@ -50,7 +50,7 @@ function App() {
                   <JournalForm />
                 </Route>
                 <Route path="/journals/:id">
-                  <Journal />
+                  <Journal user={user} />
                 </Route>
                 <Route path="/journals">
                   <Journals nJournals="6" user={user} />
