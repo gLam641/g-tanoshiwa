@@ -23,13 +23,12 @@ const useStyles = makeStyles((theme) => ({
     }),
 }));
 
-export default function Journals(props) {
+export default function Journals({ propJournals = [], nJournals, user = null }) {
     const location = useLocation();
-    let [journals, setJournals] = useState([]);
+    const [journals, setJournals] = useState(propJournals);
     const [hideNew, setHideNew] = useState(true);
     const [hidePagination, setHidePagination] = useState(true);
     const [hideControls, setHideControls] = useState(true);
-    let { nJournals = 3 } = props;
     nJournals = Number(nJournals);
     const classes = useStyles({ hideControls, hidePagination, hideNew });
     const [maxJournalsCount, setMaxJournalsCount] = useState(0);
@@ -46,15 +45,13 @@ export default function Journals(props) {
     };
 
     useEffect(() => {
-        setHideNew(location.pathname !== '/journals');
+        setHideNew(location.pathname !== '/journals' || user === null);
         setHidePagination(location.pathname !== '/journals');
         setHideControls(location.pathname !== '/journals');
-    }, [location.pathname]);
+    }, [location.pathname, user]);
 
     useEffect(() => {
-        if (props.journals) {
-            setJournals(props.journals);
-        } else {
+        if (journals.length === 0) {
             axios.get(`http://localhost:5000/journals/recent/${nJournals}`).then((resp) => {
                 setJournals(resp.data.journals);
                 setMaxJournalsCount(resp.data.maxJournalsCount);
@@ -62,7 +59,7 @@ export default function Journals(props) {
                 console.log(err);
             });
         }
-    }, [props.journals, nJournals]);
+    }, [journals, nJournals]);
 
     return (
         <>

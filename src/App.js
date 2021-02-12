@@ -53,7 +53,7 @@ function App() {
                   <Journal />
                 </Route>
                 <Route path="/journals">
-                  <Journals nJournals="6" />
+                  <Journals nJournals="6" user={user} />
                 </Route>
                 <Route path="/contact">
                   <Contact userEmail={user ? user.email : ""} />
