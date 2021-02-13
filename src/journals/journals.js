@@ -6,6 +6,12 @@ import Pagination from '@material-ui/lab/Pagination';
 import AddIcon from '@material-ui/icons/Add';
 import axios from 'axios';
 import { useLocation, Link as RouterLink } from 'react-router-dom';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
+import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import SearchIcon from '@material-ui/icons/Search';
+import TextField from '@material-ui/core/TextField';
+import InputAdornment from '@material-ui/core/InputAdornment';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -26,7 +32,11 @@ const useStyles = makeStyles((theme) => ({
     }),
 }));
 
-export default function Journals({ nJournals, user = null }) {
+const arrowIcon = (sort) => {
+    return sort.order === 'asc' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />;
+};
+
+export default function Journals({ nJournals = 6, user = null }) {
     const location = useLocation();
     const [journals, setJournals] = useState([]);
     const [hideNew, setHideNew] = useState(true);
@@ -35,6 +45,13 @@ export default function Journals({ nJournals, user = null }) {
     nJournals = Number(nJournals);
     const classes = useStyles({ hideControls, hidePagination, hideNew });
     const [maxJournalsCount, setMaxJournalsCount] = useState(0);
+    const [sort, setSort] = useState([
+        { type: 'date', order: 'desc', isSelected: true },
+        { type: 'alpha', order: 'asc', isSelected: false },
+    ]);
+    const [search, setSearch] = useState('');
+
+    let searchTimeout = null;
 
     const maxPage = Math.ceil(maxJournalsCount / nJournals);
 
@@ -47,6 +64,37 @@ export default function Journals({ nJournals, user = null }) {
         });
     };
 
+    const onSearchChange = (ev) => {
+        clearTimeout(searchTimeout);
+        const newSearch = ev.target.value;
+        if (newSearch && newSearch !== '') {
+            searchTimeout = setTimeout(() => {
+                setSearch(newSearch);
+            }, 500);
+        } else {
+            setSearch('');
+        }
+    };
+
+    const getSelectedSort = () => {
+        return sort.filter((s) => { return s.isSelected })[0];
+    }
+
+    const onSortClick = (ev, sortType) => {
+        const { type, order } = getSelectedSort();
+        if (sortType === type) {
+            setSort(sort.map((s) => {
+                if (s.isSelected) s.order = order === 'asc' ? 'desc' : 'asc';
+                return s;
+            }));
+        } else {
+            setSort(sort.map((s) => {
+                s.isSelected = s.type === sortType;
+                return s;
+            }));
+        }
+    };
+
     useEffect(() => {
         setHideNew(location.pathname !== '/journals' || user === null);
         setHidePagination(location.pathname !== '/journals');
@@ -55,7 +103,13 @@ export default function Journals({ nJournals, user = null }) {
 
     useEffect(() => {
         let isMounted = true;
-        axios.get(`http://localhost:5000/journals/recent/${nJournals}`).then((resp) => {
+        axios.get(`http://localhost:5000/journals/recent/${nJournals}`, {
+            params: {
+                nJournals,
+                search,
+                sort: sort.filter((s) => { return s.isSelected })[0]
+            }
+        }).then((resp) => {
             if (isMounted) {
                 setJournals(resp.data.journals);
                 setMaxJournalsCount(resp.data.maxJournalsCount);
@@ -64,7 +118,7 @@ export default function Journals({ nJournals, user = null }) {
             console.log(err);
         });
         return () => { isMounted = false; };
-    }, [user, nJournals]);
+    }, [user, search, sort, nJournals]);
 
     return (
         <>
@@ -83,11 +137,39 @@ export default function Journals({ nJournals, user = null }) {
                     </Grid>
                 </Grid>
                 <Grid className={classes.controlsClass} container item xs={12}>
-                    <Grid item xs={4}></Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            id="search"
+                            label="Search"
+                            type="search"
+                            onChange={onSearchChange}
+                            InputProps={{
+                                startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
+                            }}
+                            variant="outlined"
+                            size="small"
+                            fullWidth={true}
+                        />
+                    </Grid>
                     <Grid className={classes.paginationClass} container item justify="center" alignItems="center" xs={4}>
                         <Pagination count={maxPage} showFirstButton showLastButton variant="outlined" shape="rounded" onChange={PaginationChanged} />
                     </Grid>
-                    <Grid item xs={4}></Grid>
+                    <Grid container item justify="flex-end" xs={4}>
+                        <ButtonGroup color="primary" aria-label="outlined primary button group">
+                            <Button
+                                onClick={(ev) => { onSortClick(ev, 'date') }}
+                                variant={getSelectedSort().type === 'date' ? 'contained' : 'outlined'}
+                                endIcon={arrowIcon(sort.filter((s) => { return s.type === 'date' })[0])}>
+                                Date
+                            </Button>
+                            <Button
+                                onClick={(ev) => { onSortClick(ev, 'alpha') }}
+                                variant={getSelectedSort().type === 'alpha' ? 'contained' : 'outlined'}
+                                endIcon={arrowIcon(sort.filter((s) => { return s.type === 'alpha' })[0])}>
+                                A-Z
+                            </Button>
+                        </ButtonGroup>
+                    </Grid>
                 </Grid>
                 <Grid container item alignItems="center" justify="center" spacing={8}>
                     {journals.map((journal, i) => {
