@@ -8,7 +8,7 @@ import ImageGallery from '../imageGallery/imageGallery.js';
 import { useParams } from 'react-router-dom';
 import defaultImg from '../assets/pekora.png';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Link as RouterLink } from 'react-router-dom';
 
 const useStyles = makeStyles({
     root: {
@@ -19,15 +19,15 @@ const useStyles = makeStyles({
     }),
 });
 
-export default function Journal({ user = null }) {
+export default function Journal({ user = null, journal, setJournal }) {
     const history = useHistory();
-    const [journal, setJournal] = useState();
     const id = useParams().id;
     const [showDelete, setShowDelete] = useState(false);
     const classes = useStyles({ showDelete });
 
     const onDelete = (event) => {
         axios.delete(`http://localhost:5000/journals/${id}`).then((resp) => {
+            setJournal(null);
             history.push('/');
         }).catch((err) => {
             console.log(err);
@@ -55,7 +55,7 @@ export default function Journal({ user = null }) {
                 history.push('/');
             });
         }
-    }, [id, history, user]);
+    }, [id, history, user, setJournal]);
 
     return (
         <>
@@ -67,13 +67,20 @@ export default function Journal({ user = null }) {
                                 <Grid container item justify="flex-start" xs={10}>
                                     <Typography variant="h1">{journal.title}</Typography>
                                 </Grid>
-                                <Grid className={classes.deleteClass} container item justify="flex-end" alignItems="center" sm={2}>
+                                <Grid className={classes.deleteClass} container item justify="space-between" alignItems="center" sm={2}>
                                     <Button
                                         variant="contained"
                                         color="secondary"
                                         onClick={onDelete}
                                         startIcon={<DeleteIcon />}>
                                         Delete
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        component={RouterLink}
+                                        to={"/journals/" + id + "/edit"}>
+                                        Edit
                                     </Button>
                                 </Grid>
                             </Grid>

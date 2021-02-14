@@ -27,6 +27,7 @@ const Home = lazy(() => import('./home/home.js'));
 function App() {
   const [themeColor, setThemeColor] = useState('light');
   const [user, setUser] = useState();
+  const [journal, setJournal] = useState();
 
   const theme = createMuiTheme({
     palette: {
@@ -49,8 +50,11 @@ function App() {
                 <Route path="/journals/new">
                   <JournalForm user={user} />
                 </Route>
+                <Route path="/journals/:id/edit">
+                  <JournalForm user={user} journal={journal} setJournal={setJournal} />
+                </Route>
                 <Route path="/journals/:id">
-                  <Journal user={user} />
+                  <Journal user={user} journal={journal} setJournal={setJournal} />
                 </Route>
                 <Route path="/journals">
                   <Journals nJournals="6" user={user} />
