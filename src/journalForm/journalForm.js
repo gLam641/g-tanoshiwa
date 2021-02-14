@@ -108,7 +108,6 @@ export default function JournalForm({ user = null, journal = null, setJournal = 
         } else {
             setRemoveImageList(removeImageList.concat(id));
         }
-        console.log(removeImageList);
     };
 
     const onSubmit = (ev) => {
