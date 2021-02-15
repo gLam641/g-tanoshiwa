@@ -27,6 +27,7 @@ const Home = lazy(() => import('./home/home.js'));
 function App() {
   const [themeColor, setThemeColor] = useState('light');
   const [user, setUser] = useState();
+  const [journal, setJournal] = useState();
 
   const theme = createMuiTheme({
     palette: {
@@ -44,16 +45,19 @@ function App() {
             <Suspense fallback={<div>Loading...</div>}>
               <RouterSwitch>
                 <Route path="/" exact>
-                  <Home />
+                  <Home user={user} />
                 </Route>
                 <Route path="/journals/new">
-                  <JournalForm />
+                  <JournalForm user={user} />
+                </Route>
+                <Route path="/journals/:id/edit">
+                  <JournalForm user={user} journal={journal} setJournal={setJournal} />
                 </Route>
                 <Route path="/journals/:id">
-                  <Journal />
+                  <Journal user={user} journal={journal} setJournal={setJournal} />
                 </Route>
                 <Route path="/journals">
-                  <Journals nJournals="6" />
+                  <Journals nJournals="6" user={user} />
                 </Route>
                 <Route path="/contact">
                   <Contact userEmail={user ? user.email : ""} />

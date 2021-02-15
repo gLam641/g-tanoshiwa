@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Typography } from '@material-ui/core';
 import { Grid } from '@material-ui/core';
-import axios from 'axios';
 import Journals from '../journals/journals.js';
 
 const useStyles = makeStyles({
@@ -11,17 +9,8 @@ const useStyles = makeStyles({
     },
 });
 
-export default function Home() {
-    let [journals, setJournals] = useState([]);
+export default function Home({ user }) {
     const classes = useStyles();
-
-    useEffect(() => {
-        axios.get('http://localhost:5000/journals/recent/3').then((resp) => {
-            setJournals(resp.data.journals);
-        }).catch((err) => {
-            console.log(err);
-        });
-    }, []);
 
     return (
         <Grid className={classes.root} container>
@@ -29,7 +18,7 @@ export default function Home() {
                 <Typography variant="h1">Recent Journals:</Typography>
             </Grid>
             <Grid item xs={12}>
-                <Journals nJournals="3" journals={journals} />
+                <Journals nJournals="3" user={user} />
             </Grid>
         </Grid>
     );

@@ -8,22 +8,26 @@ import ImageGallery from '../imageGallery/imageGallery.js';
 import { useParams } from 'react-router-dom';
 import defaultImg from '../assets/pekora.png';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Link as RouterLink } from 'react-router-dom';
 
 const useStyles = makeStyles({
     root: {
         padding: '2rem'
-    }
+    },
+    deleteClass: props => ({
+        visibility: props.showDelete ? 'visible' : 'hidden',
+    }),
 });
 
-export default function Journal() {
+export default function Journal({ user = null, journal, setJournal }) {
     const history = useHistory();
-    const [journal, setJournal] = useState();
     const id = useParams().id;
-    const classes = useStyles();
+    const [showDelete, setShowDelete] = useState(false);
+    const classes = useStyles({ showDelete });
 
     const onDelete = (event) => {
         axios.delete(`http://localhost:5000/journals/${id}`).then((resp) => {
+            setJournal(null);
             history.push('/');
         }).catch((err) => {
             console.log(err);
@@ -41,12 +45,17 @@ export default function Journal() {
                     resp.data.images = [defaultImg];
                 }
                 setJournal(resp.data);
+                if (user !== null && resp.data.isOwner) {
+                    setShowDelete(true);
+                } else {
+                    setShowDelete(false);
+                }
             }).catch((err) => {
                 // todo: show message that the user needs to be logged in
                 history.push('/');
             });
         }
-    }, [id, history]);
+    }, [id, history, user, setJournal]);
 
     return (
         <>
@@ -55,16 +64,23 @@ export default function Journal() {
                     journal ?
                         <Grid container item spacing={4}>
                             <Grid container item xs={12}>
-                                <Grid className={classes.newClass} container item justify="flex-start" xs={8}>
+                                <Grid container item justify="flex-start" xs={10}>
                                     <Typography variant="h1">{journal.title}</Typography>
                                 </Grid>
-                                <Grid className={classes.newClass} container item justify="flex-end" alignItems="center" sm={4}>
+                                <Grid className={classes.deleteClass} container item justify="space-between" alignItems="center" sm={2}>
                                     <Button
                                         variant="contained"
                                         color="secondary"
                                         onClick={onDelete}
                                         startIcon={<DeleteIcon />}>
-                                        Delete Journal
+                                        Delete
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        component={RouterLink}
+                                        to={"/journals/" + id + "/edit"}>
+                                        Edit
                                     </Button>
                                 </Grid>
                             </Grid>
