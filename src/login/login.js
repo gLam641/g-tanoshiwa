@@ -12,6 +12,7 @@ import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import { serverEndPoint } from '../config.js';
 
 axios.defaults.withCredentials = true;
 
@@ -74,7 +75,7 @@ export default function Login({ setUser }) {
         ev.preventDefault();
 
         if (isFormValid()) {
-            axios.post('http://localhost:5000/user/login', {
+            axios.post(`${serverEndPoint}/user/login`, {
                 email,
                 password
             }).then((resp) => {

@@ -11,6 +11,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
+import { serverEndPoint } from '../config.js';
 
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -113,7 +114,7 @@ export default function JournalForm({ user = null, journal = null, setJournal = 
     const onSubmit = (ev) => {
         ev.preventDefault();
         let method = 'post';
-        let url = 'http://localhost:5000/journals/';
+        let url = `${serverEndPoint}/journals/`;
         const form = new FormData();
         form.append('privacy', isPrivate ? 'private' : 'public');
         form.append('title', title);

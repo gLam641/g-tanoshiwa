@@ -13,6 +13,7 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import Checkbox from '@material-ui/core/Checkbox';
+import { serverEndPoint } from '../config.js';
 
 axios.defaults.withCredentials = true;
 
@@ -115,7 +116,7 @@ export default function Profile({ user = null, setUser = null }) {
                 form.append('newPassword', newPassword);
                 form.append('newPassword2', newPassword2);
             }
-            axios.post('http://localhost:5000/user', form, {
+            axios.post(`${serverEndPoint}/user`, form, {
                 headers: {
                     'accept': 'application/json',
                     'Accept-Language': 'en-US,en;q=0.8',
@@ -160,7 +161,7 @@ export default function Profile({ user = null, setUser = null }) {
     // Get user profile info from server
     useEffect(() => {
         if (user) {
-            axios.get('http://localhost:5000/user')
+            axios.get(`${serverEndPoint}/user`)
                 .then((resp) => {
                     if (resp.status === 200) {
                         setName(resp.data.name);
