@@ -1,1 +1,1 @@
-export const serverEndPoint = 'https://g-tanoshiiwa-server-stag.herokuapp.com';
+export const serverEndPoint = 'https://g-tanoshiiwa-server-stag.herokuapp.com:443';
