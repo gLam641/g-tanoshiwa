@@ -1,0 +1,1 @@
+export const serverEndPoint = 'https://g-tanoshiiwa-server-stag.herokuapp.com';

@@ -12,6 +12,7 @@ import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import SearchIcon from '@material-ui/icons/Search';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import { serverEndPoint } from '../config.js';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -56,7 +57,7 @@ export default function Journals({ nJournals = 6, user = null }) {
     const maxPage = Math.ceil(maxJournalsCount / nJournals);
 
     const PaginationChanged = (event, page) => {
-        axios.get(`http://localhost:5000/journals/recent/${nJournals}/${page}`).then((resp) => {
+        axios.get(`${serverEndPoint}/journals/recent/${nJournals}/${page}`).then((resp) => {
             setJournals(resp.data.journals);
             setMaxJournalsCount(resp.data.maxJournalsCount);
         }).catch((err) => {
@@ -103,7 +104,7 @@ export default function Journals({ nJournals = 6, user = null }) {
 
     useEffect(() => {
         let isMounted = true;
-        axios.get(`http://localhost:5000/journals/recent/${nJournals}`, {
+        axios.get(`${serverEndPoint}/journals/recent/${nJournals}`, {
             params: {
                 nJournals,
                 search,

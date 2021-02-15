@@ -8,6 +8,7 @@ import { useHistory } from 'react-router-dom';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import React from 'react';
+import { serverEndPoint } from '../config.js';
 
 const Alert = React.forwardRef((props, ref) => {
     return <MuiAlert ref={ref} elevation={6} variant="filled" {...props} />;
@@ -69,7 +70,7 @@ export default function Contact({ userEmail = "" }) {
         ev.preventDefault();
 
         if (isFormValid()) {
-            axios.post('http://localhost:5000/contact/', {
+            axios.post(`${serverEndPoint}/contact/`, {
                 content,
                 email
             }).then((resp) => {

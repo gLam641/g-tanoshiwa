@@ -9,6 +9,7 @@ import { useParams } from 'react-router-dom';
 import defaultImg from '../assets/pekora.png';
 import axios from 'axios';
 import { useHistory, Link as RouterLink } from 'react-router-dom';
+import { serverEndPoint } from '../config.js';
 
 const useStyles = makeStyles({
     root: {
@@ -26,7 +27,7 @@ export default function Journal({ user = null, journal, setJournal }) {
     const classes = useStyles({ showDelete });
 
     const onDelete = (event) => {
-        axios.delete(`http://localhost:5000/journals/${id}`).then((resp) => {
+        axios.delete(`${serverEndPoint}/journals/${id}`).then((resp) => {
             setJournal(null);
             history.push('/');
         }).catch((err) => {
@@ -36,7 +37,7 @@ export default function Journal({ user = null, journal, setJournal }) {
 
     useEffect(() => {
         if (id) {
-            axios.get(`http://localhost:5000/journals/${id}`, {
+            axios.get(`${serverEndPoint}/journals/${id}`, {
                 headers: {
                     withCredentials: true
                 }

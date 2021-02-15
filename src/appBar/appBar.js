@@ -17,6 +17,7 @@ import { Link as RouterLink, useHistory } from 'react-router-dom';
 import axios from 'axios';
 import Avatar from '@material-ui/core/Avatar';
 import defaultImg from '../assets/pekora.png';
+import { serverEndPoint } from '../config.js';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -60,7 +61,7 @@ export default function MenuAppBar({ user = null, setUser, theme }) {
 
   const handleLogout = () => {
     if (user) {
-      axios.get('http://localhost:5000/user/logout').then((resp) => {
+      axios.get(`${serverEndPoint}/user/logout`).then((resp) => {
         if (resp.status === 200) {
           setUser(null);
           handleClose();
