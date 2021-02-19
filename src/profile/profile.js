@@ -109,7 +109,6 @@ export default function Profile({ user = null, setUser = null }) {
             form.append('name', name);
             form.append('password', password);
             if (image && image !== "") {
-                console.log(image);
                 form.append('image', image, image.name);
             }
             if (isNewPassword) {
@@ -132,7 +131,7 @@ export default function Profile({ user = null, setUser = null }) {
                     }, 1000);
                 }
             }).catch((err) => {
-                setSnackBarMessage(`Profile update failed: ${err.response.data.msg.message}`);
+                setSnackBarMessage(`Profile update failed: ${err.response.data.msg}`);
                 setSnackBarSeverity("error");
             });
         } else {
