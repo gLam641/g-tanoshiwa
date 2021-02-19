@@ -122,7 +122,6 @@ export default function Profile({ user = null, setUser = null }) {
                     'Accept-Language': 'en-US,en;q=0.8',
                     'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
                 },
-                withCredentials: true
             }).then((resp) => {
                 if (resp.status === 200) {
                     setSnackBarMessage(`Your profile has been updated successfully!`);
