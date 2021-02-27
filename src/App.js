@@ -18,6 +18,7 @@ import {
 } from 'react-router-dom';
 
 const Contact = lazy(() => import('./contact/contact.js'));
+const Algorithm = lazy(() => import('./algorithm/algorithm.js'));
 const Journals = lazy(() => import('./journals/journals.js'));
 const Profile = lazy(() => import('./profile/profile.js'));
 const Login = lazy(() => import('./login/login.js'));
@@ -37,48 +38,49 @@ function App() {
 
   return (
     <Router>
-      <div>
-        <ThemeProvider theme={theme}>
-          <MenuAppBar user={user} setUser={setUser} theme={{ themeColor, setThemeColor }} />
-          {/* adjust height of MenuAppBar and Paper to avoid scrollbar*/}
-          <Paper style={{ height: "100%", boxShadow: "none" }}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <RouterSwitch>
-                <Route path="/" exact>
-                  <Home user={user} />
-                </Route>
-                <Route path="/journals/new">
-                  <JournalForm user={user} />
-                </Route>
-                <Route path="/journals/:id/edit">
-                  <JournalForm user={user} journal={journal} setJournal={setJournal} />
-                </Route>
-                <Route path="/journals/:id">
-                  <Journal user={user} journal={journal} setJournal={setJournal} />
-                </Route>
-                <Route path="/journals">
-                  <Journals nJournals="6" user={user} />
-                </Route>
-                <Route path="/contact">
-                  <Contact userEmail={user ? user.email : ""} />
-                </Route>
-                <Route path="/profile">
-                  <Profile user={user} setUser={setUser} />
-                </Route>
-                <Route path="/login">
-                  <Login setUser={setUser} />
-                </Route>
-                <Route path="/register">
-                  <Register setUser={setUser} />
-                </Route>
-                <Route path="*">
-                  <div>Invalid path</div>
-                </Route>
-              </RouterSwitch>
-            </Suspense>
-          </Paper>
-        </ThemeProvider>
-      </div>
+      <ThemeProvider theme={theme}>
+        <MenuAppBar user={user} setUser={setUser} theme={{ themeColor, setThemeColor }} />
+        {/* adjust height of MenuAppBar and Paper to avoid scrollbar*/}
+        <Paper style={{ boxShadow: "none" }}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <RouterSwitch>
+              <Route path="/" exact>
+                <Home user={user} />
+              </Route>
+              <Route path="/journals/new">
+                <JournalForm user={user} />
+              </Route>
+              <Route path="/journals/:id/edit">
+                <JournalForm user={user} journal={journal} setJournal={setJournal} />
+              </Route>
+              <Route path="/journals/:id">
+                <Journal user={user} journal={journal} setJournal={setJournal} />
+              </Route>
+              <Route path="/journals">
+                <Journals nJournals="6" user={user} />
+              </Route>
+              <Route path="/contact">
+                <Contact userEmail={user ? user.email : ""} />
+              </Route>
+              <Route path="/algorithm">
+                <Algorithm />
+              </Route>
+              <Route path="/profile">
+                <Profile user={user} setUser={setUser} />
+              </Route>
+              <Route path="/login">
+                <Login setUser={setUser} />
+              </Route>
+              <Route path="/register">
+                <Register setUser={setUser} />
+              </Route>
+              <Route path="*">
+                <div>Invalid path</div>
+              </Route>
+            </RouterSwitch>
+          </Suspense>
+        </Paper>
+      </ThemeProvider>
     </Router>
   );
 }
