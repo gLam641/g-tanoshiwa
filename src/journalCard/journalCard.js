@@ -40,7 +40,6 @@ export default function JournalCard(props) {
                     height="250"
                     image={images && images.length > 0 ? images[0] : defaultImage}
                     className={classes.cardMedia}
-                    title="Pekora"
                 />
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="h2">

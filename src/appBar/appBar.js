@@ -21,7 +21,7 @@ import { serverEndPoint } from '../config.js';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    flexGrow: 1,
+    flexGrow: 0,
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -74,7 +74,7 @@ export default function MenuAppBar({ user = null, setUser, theme }) {
   };
 
   return (
-    <div className={classes.root}>
+    <div id="app_bar" className={classes.root}>
       <AppBar position="static">
         <Toolbar>
           <NavDrawer />

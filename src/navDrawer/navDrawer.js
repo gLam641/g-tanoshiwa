@@ -11,6 +11,7 @@ import JournalIcon from '@material-ui/icons/Photo';
 import HomeIcon from '@material-ui/icons/Home';
 import MenuIcon from '@material-ui/icons/Menu';
 import PersonIcon from '@material-ui/icons/Person';
+import BarChartIcon from '@material-ui/icons/BarChart';
 
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -48,6 +49,11 @@ export default function NavDrawer() {
             loc: 'Journals',
             to: '/journals',
             icon: <JournalIcon className={classes.pathIcon} />,
+        },
+        {
+            loc: 'Algorithm',
+            to: '/algorithm',
+            icon: <BarChartIcon className={classes.pathIcon} />,
         },
         {
             loc: 'Contact',

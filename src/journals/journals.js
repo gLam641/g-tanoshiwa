@@ -31,6 +31,9 @@ const useStyles = makeStyles((theme) => ({
         display: props.hideNew ? 'none' : 'flex',
         visibility: props.hideNew ? 'hidden' : 'visible',
     }),
+    journalClass: {
+        padding: theme.spacing(2)
+    }
 }));
 
 const arrowIcon = (sort) => {
@@ -172,7 +175,7 @@ export default function Journals({ nJournals = 6, user = null }) {
                         </ButtonGroup>
                     </Grid>
                 </Grid>
-                <Grid container item alignItems="center" justify="center" spacing={8}>
+                <Grid container item alignItems="center" justify="center">
                     {journals.map((journal, i) => {
                         return (
                             <Grid item key={journal._id} xs={12} sm={6} md={4}>
