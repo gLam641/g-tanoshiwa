@@ -1,6 +1,5 @@
 import { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
 import { Grid, Button, TextField } from '@material-ui/core';
-// import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import { COLOR_NETURAL, bubbleSort, insertionSort, selectionSort, mergeSort, quickSort } from '../utils/sort.js';
 import FormControl from '@material-ui/core/FormControl';
