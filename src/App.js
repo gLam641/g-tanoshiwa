@@ -18,7 +18,7 @@ import {
 } from 'react-router-dom';
 
 const Contact = lazy(() => import('./contact/contact.js'));
-const Algorithm = lazy(() => import('./algorithm/algorithm.js'));
+const SortAlgorithm = lazy(() => import('./sortAlgorithm/sortAlgorithm.js'));
 const PathFinder = lazy(() => import('./pathFinder/pathFinder.js'));
 const Journals = lazy(() => import('./journals/journals.js'));
 const Profile = lazy(() => import('./profile/profile.js'));
@@ -63,8 +63,8 @@ function App() {
               <Route path="/contact">
                 <Contact userEmail={user ? user.email : ""} />
               </Route>
-              <Route path="/algorithm">
-                <Algorithm />
+              <Route path="/sortAlgorithm">
+                <SortAlgorithm />
               </Route>
               <Route path="/pathFinder">
                 <PathFinder />

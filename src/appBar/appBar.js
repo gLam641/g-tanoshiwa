@@ -73,6 +73,18 @@ export default function MenuAppBar({ user = null, setUser, theme }) {
     }
   };
 
+  const separateCamelCase = (str) => {
+    let newStr = '';
+    for (let c of str) {
+      if (c === c.toUpperCase()) {
+        newStr += ` ${c}`;
+      } else {
+        newStr += c;
+      }
+    }
+    return newStr;
+  }
+
   return (
     <div id="app_bar" className={classes.root}>
       <AppBar position="static">
@@ -86,7 +98,7 @@ export default function MenuAppBar({ user = null, setUser, theme }) {
                     className={classes.navButton}
                     component={RouterLink}
                     to={location.pathname.split('/').slice(0, i + 1).join('/')}>
-                    {i === 0 ? 'Home' : subLoc}
+                    {i === 0 ? 'Home' : separateCamelCase(subLoc)}
                   </Button>
                 )
               })

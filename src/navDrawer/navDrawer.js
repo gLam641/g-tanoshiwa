@@ -52,8 +52,8 @@ export default function NavDrawer() {
             icon: <JournalIcon className={classes.pathIcon} />,
         },
         {
-            loc: 'Algorithm',
-            to: '/algorithm',
+            loc: 'Sort Algorithm',
+            to: '/sortAlgorithm',
             icon: <BarChartIcon className={classes.pathIcon} />,
         },
         {
