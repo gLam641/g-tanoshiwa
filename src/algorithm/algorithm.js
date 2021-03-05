@@ -45,12 +45,21 @@ export default function Algorithm() {
 
     const renderArray = useCallback((array, max) => {
         const rect_width = Math.round(canvas.width / array.length);
-        const rect_unit_height = Math.round(canvas.height / max);
+        const rect_height = Math.round(canvas.height / max);
         context.fillStyle = 'rgb(255, 255, 255)';
         context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // static drawings
+        const rect = new Path2D();
+        rect.rect(0, 0, rect_width, rect_height);
+
         array.forEach((renderObj, i) => {
+            context.save();
             context.fillStyle = renderObj.color;
-            context.fillRect(rect_width * i, canvas.height - rect_unit_height * renderObj.val, rect_width, rect_unit_height * renderObj.val);
+            context.translate(rect_width * i, canvas.height - rect_height * renderObj.val);
+            context.scale(1, renderObj.val);
+            context.fill(rect);
+            context.restore();
         });
     }, [canvas, context]);
 
