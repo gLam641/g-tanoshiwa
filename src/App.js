@@ -19,6 +19,7 @@ import {
 
 const Contact = lazy(() => import('./contact/contact.js'));
 const Algorithm = lazy(() => import('./algorithm/algorithm.js'));
+const PathFinder = lazy(() => import('./pathFinder/pathFinder.js'));
 const Journals = lazy(() => import('./journals/journals.js'));
 const Profile = lazy(() => import('./profile/profile.js'));
 const Login = lazy(() => import('./login/login.js'));
@@ -64,6 +65,9 @@ function App() {
               </Route>
               <Route path="/algorithm">
                 <Algorithm />
+              </Route>
+              <Route path="/pathFinder">
+                <PathFinder />
               </Route>
               <Route path="/profile">
                 <Profile user={user} setUser={setUser} />
