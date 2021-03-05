@@ -12,6 +12,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import MenuIcon from '@material-ui/icons/Menu';
 import PersonIcon from '@material-ui/icons/Person';
 import BarChartIcon from '@material-ui/icons/BarChart';
+import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -54,6 +55,11 @@ export default function NavDrawer() {
             loc: 'Algorithm',
             to: '/algorithm',
             icon: <BarChartIcon className={classes.pathIcon} />,
+        },
+        {
+            loc: 'Path Finder',
+            to: '/pathFinder',
+            icon: <TrendingUpIcon className={classes.pathIcon} />,
         },
         {
             loc: 'Contact',
