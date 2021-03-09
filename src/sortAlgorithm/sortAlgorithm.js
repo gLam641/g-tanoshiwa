@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function Algorithm() {
+export default function SortAlgorithm() {
     const classes = useStyles();
     const canvasRef = useRef(null);
     const [canvas, setCanvas] = useState(null);
