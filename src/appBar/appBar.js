@@ -18,6 +18,7 @@ import axios from 'axios';
 import Avatar from '@material-ui/core/Avatar';
 import defaultImg from '../assets/pekora.png';
 import { serverEndPoint } from '../config.js';
+import Hidden from '@material-ui/core/Hidden';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,6 +29,8 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flexGrow: 1,
+  },
+  breadcrumbs: {
     color: 'white',
   },
   navButton: {
@@ -40,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
   },
   themeSwitchClass: {
     display: 'none'
-  }
+  },
 }));
 
 export default function MenuAppBar({ user = null, setUser, theme }) {
@@ -92,20 +95,24 @@ export default function MenuAppBar({ user = null, setUser, theme }) {
       <AppBar position="static">
         <Toolbar>
           <NavDrawer />
-          <Breadcrumbs className={classes.title} separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb">
-            {
-              location.pathname.replace(/\/$/, '').split('/').map((subLoc, i) => {
-                return (
-                  <Button key={'button' + subLoc + i}
-                    className={classes.navButton}
-                    component={RouterLink}
-                    to={location.pathname.split('/').slice(0, i + 1).join('/')}>
-                    {i === 0 ? 'Home' : separateCamelCase(subLoc, i)}
-                  </Button>
-                )
-              })
-            }
-          </Breadcrumbs>
+          <div className={classes.title}>
+            <Hidden smDown>
+              <Breadcrumbs className={classes.breadcrumbs} separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb">
+                {
+                  location.pathname.replace(/\/$/, '').split('/').map((subLoc, i) => {
+                    return (
+                      <Button key={'button' + subLoc + i}
+                        className={classes.navButton}
+                        component={RouterLink}
+                        to={location.pathname.split('/').slice(0, i + 1).join('/')}>
+                        {i === 0 ? 'Home' : separateCamelCase(subLoc, i)}
+                      </Button>
+                    )
+                  })
+                }
+              </Breadcrumbs>
+            </Hidden>
+          </div>
           <Switch className={classes.themeSwitchClass} checked={theme.themeColor === "dark"} onChange={() => theme.setThemeColor(theme.themeColor === 'light' ? 'dark' : 'light')} />
           <Typography variant="h6" className={classes.welcome}>
             Welcome! {user ? user.name : 'Guest'}

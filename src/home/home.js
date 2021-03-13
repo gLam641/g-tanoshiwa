@@ -7,6 +7,9 @@ const useStyles = makeStyles({
     root: {
         padding: '2em'
     },
+    recentClass: {
+        paddingBottom: '4em'
+    },
 });
 
 export default function Home({ user }) {
@@ -14,7 +17,7 @@ export default function Home({ user }) {
 
     return (
         <Grid className={classes.root} container>
-            <Grid item xs={12}>
+            <Grid className={classes.recentClass} item xs={12}>
                 <Typography variant="h1">Recent Journals:</Typography>
             </Grid>
             <Grid item xs={12}>
