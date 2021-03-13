@@ -44,6 +44,10 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: '8px',
         display: 'inline-block'
     },
+    linkClass: {
+        marginLeft: '8px',
+        display: 'inline-block'
+    },
     gridList: {
         padding: '2em 5em',
         width: '100%'
@@ -67,6 +71,9 @@ export default function JournalForm({ user = null, journal = null, setJournal = 
     const [removeImageList, setRemoveImageList] = useState([]);
     const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
     const [isPrivate, setIsPrivate] = useState(true);
+    const [isLink, setIsLink] = useState(false);
+    const [link, setLink] = useState("");
+    const [linkHelper, setLinkHelper] = useState("");
 
     const classes = useStyles();
     const history = useHistory();
@@ -80,6 +87,12 @@ export default function JournalForm({ user = null, journal = null, setJournal = 
             setTitle("");
             setTitleHelper("Title cannot be empty");
         }
+    };
+
+    const onLinkChange = (ev) => {
+        const newLink = ev.target.value === "" ? null : ev.target.value;
+        setLink(newLink);
+        setLinkHelper("");
     };
 
     const onContentChange = (ev) => {
@@ -118,6 +131,7 @@ export default function JournalForm({ user = null, journal = null, setJournal = 
         const form = new FormData();
         form.append('privacy', isPrivate ? 'private' : 'public');
         form.append('title', title);
+        form.append('link', isLink ? link : null);
         form.append('removeImageList', removeImageList);
         [...images].forEach((image) => {
             form.append('images', image, image.name)
@@ -164,6 +178,10 @@ export default function JournalForm({ user = null, journal = null, setJournal = 
         if (journal) {
             setTitle(journal.title);
             setContent(journal.content);
+            setLink(journal.link);
+            if (journal.link) {
+                setIsLink(true);
+            }
             setIsPrivate(journal.privacy === 'private');
         }
         if (setJournal) {
@@ -243,6 +261,38 @@ export default function JournalForm({ user = null, journal = null, setJournal = 
                                         </GridListTile>
                                     ))}
                                 </GridList>
+                                :
+                                <></>
+                        }
+                        <Grid container alignItems="center" alignContent="center">
+                            <Grid item xs={8}>
+                                <Typography className={classes.linkClass} variant="h6">Page Link: </Typography>
+                            </Grid>
+                            <Grid container item xs={4} justify="flex-end">
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={isLink}
+                                            name={isLink ? 'Yes' : 'No'}
+                                            value={isLink}
+                                            onChange={(ev) => { setIsLink(!isLink) }}
+                                            color="primary"
+                                        />
+                                    }
+                                    label={isLink ? 'Yes' : 'No'}
+                                />
+                            </Grid>
+                        </Grid>
+                        {
+                            isLink ?
+                                <TextField
+                                    id="link"
+                                    label="Link Path"
+                                    onChange={onLinkChange}
+                                    helperText={linkHelper}
+                                    value={link}
+                                    variant="outlined"
+                                />
                                 :
                                 <></>
                         }

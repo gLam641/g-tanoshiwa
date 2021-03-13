@@ -10,12 +10,13 @@ import defaultImg from '../assets/pekora.png';
 import axios from 'axios';
 import { useHistory, Link as RouterLink } from 'react-router-dom';
 import { serverEndPoint } from '../config.js';
+import TelegramIcon from '@material-ui/icons/Telegram';
 
 const useStyles = makeStyles({
     root: {
         padding: '2rem'
     },
-    deleteClass: props => ({
+    modifyClass: props => ({
         visibility: props.showDelete ? 'visible' : 'hidden',
     }),
 });
@@ -68,15 +69,30 @@ export default function Journal({ user = null, journal, setJournal }) {
                                 <Grid container item justify="flex-start" xs={10}>
                                     <Typography variant="h1">{journal.title}</Typography>
                                 </Grid>
-                                <Grid className={classes.deleteClass} container item justify="space-between" alignItems="center" sm={2}>
+                                <Grid container item justify="space-between" alignItems="center" sm={2}>
                                     <Button
+                                        className={classes.modifyClass}
                                         variant="contained"
                                         color="secondary"
                                         onClick={onDelete}
                                         startIcon={<DeleteIcon />}>
                                         Delete
                                     </Button>
+                                    {
+                                        journal.link ?
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                component={RouterLink}
+                                                to={journal.link}
+                                                startIcon={<TelegramIcon />}>
+                                                Visit
+                                            </Button>
+                                            :
+                                            <></>
+                                    }
                                     <Button
+                                        className={classes.modifyClass}
                                         variant="contained"
                                         color="primary"
                                         component={RouterLink}

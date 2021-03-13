@@ -8,6 +8,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import { Link as RouterLink } from 'react-router-dom';
+import Grid from '@material-ui/core/Grid';
 
 import defaultImage from '../assets/pekora.png';
 
@@ -32,7 +33,7 @@ const useStyles = makeStyles({
 
 export default function JournalCard(props) {
     const classes = useStyles();
-    const { _id: id, title, content, images, animation = "slide-right" } = props.journalInfo;
+    const { _id: id, title, link = null, content, images, animation = "slide-right" } = props.journalInfo;
 
     return (
         <Card data-aos={animation} className={classes.root}>
@@ -54,9 +55,23 @@ export default function JournalCard(props) {
                 </CardContent>
             </CardActionArea>
             <CardActions>
-                <Button size="small" color="primary" component={RouterLink} to={"/journals/" + id}>
-                    Learn More
-                </Button>
+                <Grid container justify='space-between'>
+                    <Grid item>
+                        <Button size="small" color="primary" component={RouterLink} to={"/journals/" + id}>
+                            Learn More
+                        </Button>
+                    </Grid>
+                    {
+                        link !== null ?
+                            <Grid item>
+                                <Button size="small" color="primary" component={RouterLink} to={link}>
+                                    Visit Link
+                                </Button>
+                            </Grid>
+                            :
+                            <></>
+                    }
+                </Grid>
             </CardActions>
         </Card>
     );
