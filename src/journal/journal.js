@@ -11,6 +11,8 @@ import axios from 'axios';
 import { useHistory, Link as RouterLink } from 'react-router-dom';
 import { serverEndPoint } from '../config.js';
 import TelegramIcon from '@material-ui/icons/Telegram';
+import { useTheme } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 const useStyles = makeStyles({
     root: {
@@ -22,6 +24,9 @@ const useStyles = makeStyles({
 });
 
 export default function Journal({ user = null, journal, setJournal }) {
+    const theme = useTheme();
+    const mqXS = useMediaQuery(theme.breakpoints.up('xs'));
+    const mqMD = useMediaQuery(theme.breakpoints.up('md'));
     const history = useHistory();
     const id = useParams().id;
     const [showDelete, setShowDelete] = useState(false);
@@ -65,11 +70,11 @@ export default function Journal({ user = null, journal, setJournal }) {
                 {
                     journal ?
                         <Grid container item spacing={4}>
-                            <Grid container item xs={12}>
-                                <Grid container item justify="flex-start" xs={10}>
+                            <Grid container item xs={12} spacing={mqXS ? 2 : 0}>
+                                <Grid container item justify="flex-start" xs={12} md={8}>
                                     <Typography variant="h1">{journal.title}</Typography>
                                 </Grid>
-                                <Grid container item justify="space-between" alignItems="center" sm={2}>
+                                <Grid container item justify='space-between' alignItems='center' xs={12} md={4}>
                                     <Button
                                         className={classes.modifyClass}
                                         variant="contained"
