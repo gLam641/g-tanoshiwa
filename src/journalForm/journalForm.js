@@ -66,7 +66,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function JournalForm({ user = null, journal = null, setJournal = null }) {
     const theme = useTheme();
-    const mqXS = useMediaQuery(theme.breakpoints.up('xs'));
     const mqMD = useMediaQuery(theme.breakpoints.up('md'));
     const [title, setTitle] = useState("");
     const [titleHelper, setTitleHelper] = useState("");

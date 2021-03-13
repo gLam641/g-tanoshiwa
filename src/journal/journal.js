@@ -26,7 +26,6 @@ const useStyles = makeStyles({
 export default function Journal({ user = null, journal, setJournal }) {
     const theme = useTheme();
     const mqXS = useMediaQuery(theme.breakpoints.up('xs'));
-    const mqMD = useMediaQuery(theme.breakpoints.up('md'));
     const history = useHistory();
     const id = useParams().id;
     const [showDelete, setShowDelete] = useState(false);
