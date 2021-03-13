@@ -125,6 +125,12 @@ export default function Journals({ nJournals = 6, user = null }) {
         return () => { isMounted = false; };
     }, [user, search, sort, nJournals]);
 
+    const animations = [
+        'slide-right',
+        'flip-up',
+        'slide-left',
+    ];
+
     return (
         <>
             <Grid container className={classes.root}>
@@ -181,7 +187,7 @@ export default function Journals({ nJournals = 6, user = null }) {
                         {journals.map((journal, i) => {
                             return (
                                 <Grid item key={journal._id} xs={12} sm={6} md={4}>
-                                    <JournalCard journalInfo={journal} />
+                                    <JournalCard journalInfo={{ ...journal, animation: animations[i % 3] }} />
                                 </Grid>
                             )
                         })}
