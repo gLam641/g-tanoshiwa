@@ -12,6 +12,8 @@ import Switch from '@material-ui/core/Switch';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import { serverEndPoint } from '../config.js';
+import { useTheme } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -63,6 +65,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function JournalForm({ user = null, journal = null, setJournal = null }) {
+    const theme = useTheme();
+    const mqXS = useMediaQuery(theme.breakpoints.up('xs'));
+    const mqMD = useMediaQuery(theme.breakpoints.up('md'));
     const [title, setTitle] = useState("");
     const [titleHelper, setTitleHelper] = useState("");
     const [content, setContent] = useState("");
@@ -252,7 +257,7 @@ export default function JournalForm({ user = null, journal = null, setJournal = 
                             journal ?
                                 <GridList className={classes.gridList} cols={3}>
                                     {journal.images.map((image, i) => (
-                                        <GridListTile key={'image_' + i} cols={1}>
+                                        <GridListTile key={'image_' + i} cols={mqMD ? 1 : 3}>
                                             <img
                                                 className={classes.gridListTileImgClass}
                                                 src={image}

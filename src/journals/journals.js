@@ -13,6 +13,8 @@ import SearchIcon from '@material-ui/icons/Search';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import { serverEndPoint } from '../config.js';
+import { useTheme } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -34,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
     }),
     journalClass: {
         padding: theme.spacing(2)
-    }
+    },
 }));
 
 const arrowIcon = (sort) => {
@@ -42,6 +44,9 @@ const arrowIcon = (sort) => {
 };
 
 export default function Journals({ nJournals = 6, user = null }) {
+    const theme = useTheme();
+    const mqXS = useMediaQuery(theme.breakpoints.up('xs'));
+
     const location = useLocation();
     const [journals, setJournals] = useState([]);
     const [hideNew, setHideNew] = useState(true);
@@ -135,8 +140,8 @@ export default function Journals({ nJournals = 6, user = null }) {
         <>
             <Grid container className={classes.root}>
                 <Grid className={classes.newControlsClass} container item xs={12}>
-                    <Grid item xs={8}></Grid>
-                    <Grid container item justify="flex-end" xs={4}>
+                    <Grid item xs={6} md={8}></Grid>
+                    <Grid container item justify="flex-end" xs={6} md={4}>
                         <Button
                             variant="contained"
                             color="primary"
@@ -147,8 +152,8 @@ export default function Journals({ nJournals = 6, user = null }) {
                         </Button>
                     </Grid>
                 </Grid>
-                <Grid className={classes.controlsClass} container item xs={12}>
-                    <Grid item xs={4}>
+                <Grid className={classes.controlsClass} container item xs={12} spacing={mqXS ? 2 : 0}>
+                    <Grid item xs={12} md={4}>
                         <TextField
                             id="search"
                             label="Search"
@@ -162,10 +167,10 @@ export default function Journals({ nJournals = 6, user = null }) {
                             fullWidth={true}
                         />
                     </Grid>
-                    <Grid className={classes.paginationClass} container item justify="center" alignItems="center" xs={4}>
+                    <Grid className={classes.paginationClass} container item justify="center" alignItems="center" xs={12} md={4}>
                         <Pagination count={maxPage} showFirstButton showLastButton variant="outlined" shape="rounded" onChange={PaginationChanged} />
                     </Grid>
-                    <Grid container item justify="flex-end" xs={4}>
+                    <Grid container item justify={mqXS ? "center" : "flex-end"} xs={12} md={4}>
                         <ButtonGroup color="primary" aria-label="outlined primary button group">
                             <Button
                                 onClick={(ev) => { onSortClick(ev, 'date') }}

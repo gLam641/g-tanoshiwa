@@ -53,7 +53,7 @@ function App() {
   for (let i = 0; i < 7; ++i) {
     const heading = `h${i}`;
     theme.typography[heading] = {
-      fontSize: `${defaultHeadingSize[heading] * 1.5}em`,
+      fontSize: `${defaultHeadingSize[heading] * 1}em`,
       [theme.breakpoints.up('md')]: {
         fontSize: `${defaultHeadingSize[heading] * 1.7}em`,
       },
