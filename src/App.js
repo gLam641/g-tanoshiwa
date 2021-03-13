@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Suspense, lazy } from 'react';
 // import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 /* As of writing, Material UI hasn't kept up with react changes. Using createMuiTheme causes the following warning:
@@ -9,6 +9,9 @@ import MenuAppBar from './appBar/appBar.js';
 import { Paper } from '@material-ui/core';
 import Journal from './journal/journal.js';
 import JournalForm from './journalForm/journalForm.js';
+import AOS from 'aos';
+
+import 'aos/dist/aos.css';
 
 import './App.css';
 import {
@@ -59,6 +62,12 @@ function App() {
       },
     }
   }
+
+  useEffect(() => {
+    AOS.init({
+      duration: 1000,
+    });
+  }, []);
 
   return (
     <Router>

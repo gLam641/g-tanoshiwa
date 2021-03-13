@@ -12,9 +12,12 @@ import { Link as RouterLink } from 'react-router-dom';
 import defaultImage from '../assets/pekora.png';
 
 const useStyles = makeStyles({
+    divClass: {
+        dataAos: 'fadeIn'
+    },
     root: {
         maxWidth: "100%",
-        height: '25rem'
+        height: '25rem',
     },
     cardMedia: {
         objectFit: "contain"
@@ -29,10 +32,10 @@ const useStyles = makeStyles({
 
 export default function JournalCard(props) {
     const classes = useStyles();
-    const { _id: id, title, content, images } = props.journalInfo;
+    const { _id: id, title, content, images, animation = "slide-right" } = props.journalInfo;
 
     return (
-        <Card className={classes.root}>
+        <Card data-aos={animation} className={classes.root}>
             <CardActionArea>
                 <CardMedia
                     component="img"
