@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
+import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -12,7 +13,6 @@ const useStyles = makeStyles((theme) => ({
     },
     gridList: {
         padding: '2em 5em',
-        width: '100%'
     },
     imgClass: {
         objectFit: "contain",
@@ -21,14 +21,29 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-
-export default function ImageGallery(props) {
+function ImageGallery(props) {
     const { id: journalId = "-", images } = props;
     const classes = useStyles();
 
+    const getGridListCols = () => {
+        if (isWidthUp('md', props.width)) {
+            return 12;
+        }
+
+        if (isWidthUp('sm', props.width)) {
+            return 8;
+        }
+
+        if (isWidthUp('xs', props.width)) {
+            return 4;
+        }
+
+        return 4;
+    }
+
     return (
         <div className={classes.root}>
-            <GridList className={classes.gridList} cols={12} >
+            <GridList className={classes.gridList} cols={getGridListCols()} spacing={2}>
                 {
                     images.map((image, image_id) => (
                         <GridListTile key={'journal_' + journalId + '_' + image_id} cols={4}>
@@ -40,3 +55,5 @@ export default function ImageGallery(props) {
         </div >
     );
 };
+
+export default withWidth()(ImageGallery);

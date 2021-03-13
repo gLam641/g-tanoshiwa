@@ -223,7 +223,7 @@ export default function Algorithm() {
         <Grid container className={classes.root}>
             <Grid id="algo_controls" className={classes.controlClass} item xs={12}>
                 <Grid className={classes.controlRowClass} container item>
-                    <Grid container item xs={12} md={4} alignItems="center" justify="center">
+                    <Grid container xs={4} alignItems="center" justify="center">
                         <FormControl >
                             <Select
                                 value={algorithm}
@@ -240,7 +240,7 @@ export default function Algorithm() {
                             <FormHelperText>Algorithm</FormHelperText>
                         </FormControl>
                     </Grid>
-                    <Grid container item xs={12} md={4} alignItems="center" justify="center">
+                    <Grid container item xs={4} alignItems="center" justify="center">
                         <FormControl >
                             <Select
                                 value={size}
@@ -258,7 +258,7 @@ export default function Algorithm() {
                             <FormHelperText>Size</FormHelperText>
                         </FormControl>
                     </Grid>
-                    <Grid container item xs={12} md={4} alignItems="center" justify="center">
+                    <Grid container item xs={4} alignItems="center" justify="center">
                         <FormControl >
                             <Select
                                 value={renderDelay}
@@ -275,10 +275,9 @@ export default function Algorithm() {
                             <FormHelperText>Delay (ms)</FormHelperText>
                         </FormControl>
                     </Grid>
-
                 </Grid>
                 <Grid className={classes.controlRowClass} container item alignItems="center">
-                    <Grid container item xs={12} md={4} justify="center">
+                    <Grid container item xs={3} sm={4} justify="center" style={{ padding: "0 0.5em" }}>
                         <TextField
                             label="Runtime (ms)"
                             value={runtime}
@@ -287,7 +286,7 @@ export default function Algorithm() {
                             }}
                         />
                     </Grid>
-                    <Grid container item xs={12} md={4} alignItems="center" justify="center">
+                    <Grid container item xs={6} sm={4} alignItems="center" justify="center">
                         <Grid container item xs={4} justify="center">
                             <Button
                                 color="primary"
@@ -313,7 +312,7 @@ export default function Algorithm() {
                             >Next</Button>
                         </Grid>
                     </Grid>
-                    <Grid container item xs={12} md={4} justify="center">
+                    <Grid container item xs={3} ms={4} justify="center">
                         <Button
                             color="primary"
                             variant="contained"

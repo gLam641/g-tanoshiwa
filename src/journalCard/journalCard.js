@@ -42,7 +42,7 @@ export default function JournalCard(props) {
                     className={classes.cardMedia}
                 />
                 <CardContent>
-                    <Typography gutterBottom variant="h5" component="h2">
+                    <Typography gutterBottom variant="h5">
                         {title}
                     </Typography>
                     <Typography className={classes.cardContent} variant="body2" color="textSecondary" component="p">

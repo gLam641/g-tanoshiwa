@@ -19,6 +19,7 @@ const useStyles = makeStyles((theme) => ({
         flexGrow: 1,
     },
     controlsClass: props => ({
+        display: props.hideControls ? 'none' : 'flex',
         visibility: props.hideControls ? 'hidden' : 'visible',
         padding: theme.spacing(4),
     }),
@@ -175,15 +176,17 @@ export default function Journals({ nJournals = 6, user = null }) {
                         </ButtonGroup>
                     </Grid>
                 </Grid>
-                <Grid container item alignItems="center" justify="center">
-                    {journals.map((journal, i) => {
-                        return (
-                            <Grid item key={journal._id} xs={12} sm={6} md={4}>
-                                <JournalCard journalInfo={journal} />
-                            </Grid>
-                        )
-                    })}
-                </Grid>
+                <div style={{ width: "100%", padding: 16 }}>
+                    <Grid container item alignItems="center" justify="center" spacing={4}>
+                        {journals.map((journal, i) => {
+                            return (
+                                <Grid item key={journal._id} xs={12} sm={6} md={4}>
+                                    <JournalCard journalInfo={journal} />
+                                </Grid>
+                            )
+                        })}
+                    </Grid>
+                </div>
             </Grid>
         </>
     );

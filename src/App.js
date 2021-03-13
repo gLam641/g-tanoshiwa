@@ -34,8 +34,31 @@ function App() {
   const theme = createMuiTheme({
     palette: {
       type: themeColor
-    }
+    },
   });
+
+  const defaultHeadingSize = {
+    h1: 2,
+    h2: 1.5,
+    h3: 1.17,
+    h4: 1,
+    h5: .83,
+    h6: .67
+  };
+
+  // Set responsive font size 
+  for (let i = 0; i < 7; ++i) {
+    const heading = `h${i}`;
+    theme.typography[heading] = {
+      fontSize: `${defaultHeadingSize[heading] * 1.5}em`,
+      [theme.breakpoints.up('md')]: {
+        fontSize: `${defaultHeadingSize[heading] * 1.7}em`,
+      },
+      [theme.breakpoints.up('lg')]: {
+        fontSize: `${defaultHeadingSize[heading] * 2}em`,
+      },
+    }
+  }
 
   return (
     <Router>
