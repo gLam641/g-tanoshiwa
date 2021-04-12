@@ -13,6 +13,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import PersonIcon from '@material-ui/icons/Person';
 import BarChartIcon from '@material-ui/icons/BarChart';
 import TrendingUpIcon from '@material-ui/icons/TrendingUp';
+import ExtensionIcon from '@material-ui/icons/Extension';
 
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -60,6 +61,11 @@ export default function NavDrawer() {
             loc: 'Path Finder',
             to: '/pathFinder',
             icon: <TrendingUpIcon className={classes.pathIcon} />,
+        },
+        {
+            loc: 'Jigsaw Puzzle',
+            to: '/jigsawPuzzle',
+            icon: <ExtensionIcon className={classes.pathIcon} />,
         },
         {
             loc: 'Contact',
