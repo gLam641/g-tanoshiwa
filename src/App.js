@@ -23,6 +23,7 @@ import {
 const Contact = lazy(() => import('./contact/contact.js'));
 const SortAlgorithm = lazy(() => import('./sortAlgorithm/sortAlgorithm.js'));
 const PathFinder = lazy(() => import('./pathFinder/pathFinder.js'));
+const JigsawPuzzle = lazy(() => import('./jigsawPuzzle/jigsawPuzzle.js'));
 const Journals = lazy(() => import('./journals/journals.js'));
 const Profile = lazy(() => import('./profile/profile.js'));
 const Login = lazy(() => import('./login/login.js'));
@@ -100,6 +101,9 @@ function App() {
               </Route>
               <Route path="/pathFinder">
                 <PathFinder />
+              </Route>
+              <Route path="/jigsawPuzzle">
+                <JigsawPuzzle />
               </Route>
               <Route path="/profile">
                 <Profile user={user} setUser={setUser} />
