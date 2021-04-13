@@ -344,7 +344,7 @@ export default function JigsawPuzzle() {
     const [socket, setSocket] = useState();
     const [roomID, setRoomID] = useState();
 
-    const mouseMoveInterval = 70;
+    const mouseMoveInterval = 50;
 
     const getLocalScale = useCallback((state = gameState) => {
         if (canvasRef && canvasRef.current && state) {
@@ -421,7 +421,6 @@ export default function JigsawPuzzle() {
     useEffect(() => {
         const newSocket = io(serverEndPoint, {
             withCredentials: true,
-            transports: ["websocket"],
         });
 
         const initPuzzlePieces = (state) => {
