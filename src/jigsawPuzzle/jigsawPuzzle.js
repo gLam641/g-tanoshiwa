@@ -421,6 +421,7 @@ export default function JigsawPuzzle() {
     useEffect(() => {
         const newSocket = io(serverEndPoint, {
             withCredentials: true,
+            transports: ["websocket"],
         });
 
         const initPuzzlePieces = (state) => {
@@ -460,7 +461,6 @@ export default function JigsawPuzzle() {
         });
 
         newSocket.on('createdRoom', (roomID, lobby) => {
-            console.log(`Created room: ${roomID}`);
             setRoomID(roomID);
             setLobby(lobby);
             setIsHost(true);
