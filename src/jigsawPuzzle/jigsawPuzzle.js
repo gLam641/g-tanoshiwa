@@ -336,22 +336,23 @@ export default function JigsawPuzzle() {
     const [rowCol, setRowCol] = useState(5);
 
     const canvasRef = useRef(null);
+    const [isGeneratePuzzlePieces, setIsGeneratePuzzlePieces] = useState(false);
     const [gameState, setGameState] = useState();
     const [selectedPieceID, setSelectedPieceId] = useState(null);
     const [snackBarMessage, setSnackBarMessage] = useState("");
     const [snackBarSeverity, setSnackBarSeverity] = useState("success");
-    const [puzzlePaths, setPuzzlePaths] = useState({});
+    const [puzzlePaths, setPuzzlePaths] = useState([]);
     const [socket, setSocket] = useState();
     const [roomID, setRoomID] = useState();
 
     const mouseMoveInterval = 50;
 
-    const getLocalScale = useCallback((state = gameState) => {
-        if (canvasRef && canvasRef.current && state) {
+    const getLocalScale = useCallback(() => {
+        if (canvasRef && canvasRef.current && gameState) {
             const canvas = canvasRef.current;
             return {
-                x: canvas.width / state.gameWidth,
-                y: canvas.height / state.gameHeight
+                x: canvas.width / gameState.gameWidth,
+                y: canvas.height / gameState.gameHeight
             };
         } else {
             return {
@@ -362,14 +363,37 @@ export default function JigsawPuzzle() {
     }, [gameState]);
 
     const renderPuzzle = useCallback(() => {
-        if (canvasRef && canvasRef.current && gameState) {
+        const localScale = getLocalScale();
+
+        // Perhaps there's a better way to update puzzle paths without doing it in the render function, 
+        // but the dependency on the frequently updated gameState causes issues
+        if (isGeneratePuzzlePieces) {
+            if (gameState) {
+                const newPuzzlePaths = [];
+
+                gameState.pieces.forEach((piece) => {
+                    const path = new Path2D();
+                    path.moveTo(0, 0);
+                    addPath(path, roundTypes[piece.strPathTypes.top], { x: 0, y: 0 }, { x: piece.width, y: 0 }, localScale);
+                    addPath(path, roundTypes[piece.strPathTypes.right], { x: piece.width, y: 0 }, { x: piece.width, y: piece.height }, localScale);
+                    addPath(path, roundTypes[piece.strPathTypes.bottom], { x: piece.width, y: piece.height }, { x: 0, y: piece.height }, localScale);
+                    addPath(path, roundTypes[piece.strPathTypes.left], { x: 0, y: piece.height }, { x: 0, y: 0 }, localScale);
+                    newPuzzlePaths[piece.id] = path;
+                });
+                setIsGeneratePuzzlePieces(false);
+                setPuzzlePaths(newPuzzlePaths);
+            }
+        } else if (canvasRef && canvasRef.current && gameState) {
             const canvas = canvasRef.current;
             const context = canvas.getContext('2d');
 
-            const localScale = getLocalScale();
+            // Clear canvas
+            context.save();
+            context.fillStyle = 'white';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.restore();
 
             // Draw frame
-            // note: Opt not to apply localScale to strokeRect since it also affect stroke width
             context.save();
             context.translate(gameState.frameOffset.x * localScale.x, gameState.frameOffset.y * localScale.y);
             context.strokeStyle = 'black';
@@ -377,29 +401,30 @@ export default function JigsawPuzzle() {
             context.restore();
 
             // Draw pieces
-            // note: Opt not to apply localScale to clip and drawImage since it also affect stroke width
             if (isImageReady) {
                 gameState.pieces.forEach((piece) => {
                     const path = puzzlePaths[piece.id];
-                    context.save();
-                    context.translate(piece.translate.x * localScale.x, piece.translate.y * localScale.y);
-                    context.save();
-                    context.clip(path);
-                    context.scale(localScale.x, localScale.y);
-                    context.drawImage(
-                        img,
-                        -piece.relativeImageTranslation.x,
-                        -piece.relativeImageTranslation.y,
-                        gameState.frameWidth,
-                        gameState.frameHeight);
-                    context.restore();
-                    if (piece.isLocked) {
-                        context.strokeStyle = 'red';
-                    } else if (piece.selectedClient === socket.id) {
-                        context.strokeStyle = 'lime';
+                    if (path) {
+                        context.save();
+                        context.translate(piece.translate.x * localScale.x, piece.translate.y * localScale.y);
+                        context.save();
+                        context.clip(path);
+                        context.scale(localScale.x, localScale.y);
+                        context.drawImage(
+                            img,
+                            -piece.relativeImageTranslation.x,
+                            -piece.relativeImageTranslation.y,
+                            gameState.frameWidth,
+                            gameState.frameHeight);
+                        context.restore();
+                        if (piece.isLocked) {
+                            context.strokeStyle = 'red';
+                        } else if (piece.selectedClient === socket.id) {
+                            context.strokeStyle = 'lime';
+                        }
+                        context.stroke(path);
+                        context.restore();
                     }
-                    context.stroke(path);
-                    context.restore();
                 });
             }
 
@@ -416,38 +441,13 @@ export default function JigsawPuzzle() {
                 context.restore();
             }
         }
-    }, [gameState, puzzlePaths, socket, getLocalScale, lobby]);
+    }, [gameState, isGeneratePuzzlePieces, puzzlePaths, socket, getLocalScale, lobby]);
 
+    // Socket events
     useEffect(() => {
         const newSocket = io(serverEndPoint, {
             withCredentials: true,
         });
-
-        const initPuzzlePieces = (state) => {
-            const newPuzzlePaths = [];
-
-            const localScale = {
-                x: 1,
-                y: 1
-            }
-            if (canvasRef && canvasRef.current && state) {
-                const canvas = canvasRef.current;
-                localScale.x = canvas.width / state.gameWidth;
-                localScale.y = canvas.height / state.gameHeight;
-            }
-
-            state.pieces.forEach((piece) => {
-                const path = new Path2D();
-                path.moveTo(0, 0);
-                addPath(path, roundTypes[piece.strPathTypes.top], { x: 0, y: 0 }, { x: piece.width, y: 0 }, localScale);
-                addPath(path, roundTypes[piece.strPathTypes.right], { x: piece.width, y: 0 }, { x: piece.width, y: piece.height }, localScale);
-                addPath(path, roundTypes[piece.strPathTypes.bottom], { x: piece.width, y: piece.height }, { x: 0, y: piece.height }, localScale);
-                addPath(path, roundTypes[piece.strPathTypes.left], { x: 0, y: piece.height }, { x: 0, y: 0 }, localScale);
-                newPuzzlePaths[piece.id] = path;
-            });
-            setPuzzlePaths(newPuzzlePaths);
-            setGameState(state);
-        }
 
         setSocket(newSocket);
 
@@ -467,14 +467,15 @@ export default function JigsawPuzzle() {
             setIsSettingDialogOpen(true);
         });
 
-        newSocket.on('joinedRoom', (roomID, lobby, name, userID, state) => {
+        newSocket.on('joinedRoom', (roomID, lobby, name, userID, newState) => {
             console.log(`Joined room: ${roomID}`);
             if (roomID) {
                 setRoomID(roomID);
                 setLobby(lobby);
                 if (newSocket.id === userID) {
                     setIsHost(false);
-                    initPuzzlePieces(state);
+                    setIsGeneratePuzzlePieces(true);
+                    setGameState(newState);
                     hideAllDialogs();
                     setIsRoomDialogOpen(true);
                 }
@@ -497,7 +498,8 @@ export default function JigsawPuzzle() {
         });
 
         newSocket.on('initializedGame', (newState) => {
-            initPuzzlePieces(newState);
+            setIsGeneratePuzzlePieces(true);
+            setGameState(newState);
             hideAllDialogs();
             setIsRoomDialogOpen(true);
         });
@@ -531,8 +533,9 @@ export default function JigsawPuzzle() {
         return () => {
             newSocket.emit('jigsaw:leaveRoom');
         };
-    }, [setGameState, setPuzzlePaths]);
+    }, []);
 
+    // Mouse / keyboard interactions
     useEffect(() => {
         const canvas = canvasRef.current;
 
@@ -593,19 +596,22 @@ export default function JigsawPuzzle() {
         });
     }, [canvasRef, gameState, puzzlePaths, socket, roomID, selectedPieceID, getLocalScale]);
 
+    // Canvas size changes
     useLayoutEffect(() => {
         const updateCanvasSize = () => {
             if (canvasRef && canvasRef.current !== null) {
                 canvasRef.current.width = window.innerWidth;
                 canvasRef.current.height = window.innerHeight - document.querySelector('#app_bar').offsetHeight;
-                // todo: need to regenerate puzzle pieces with the updated canvas size. This appears to be the only 'true'
-                // way to keep the stroke width as desired
-                renderPuzzle();
+                setIsGeneratePuzzlePieces(true);
             }
         }
         window.addEventListener('resize', updateCanvasSize);
         updateCanvasSize();
         return () => window.removeEventListener('resize', updateCanvasSize);
+    }, []);
+
+    useEffect(() => {
+        renderPuzzle();
     }, [renderPuzzle]);
 
     function closeSnackbar(event, reason) {
