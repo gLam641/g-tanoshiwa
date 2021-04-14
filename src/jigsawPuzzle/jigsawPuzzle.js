@@ -23,6 +23,7 @@ import PersonIcon from '@material-ui/icons/Person';
 
 import { serverEndPoint } from '../config.js';
 import { throttle } from '../utils/throttle.js';
+import { debounce } from '../utils/debounce.js';
 import defaultImg from '../assets/pekora.png';
 
 // Temporary image
@@ -345,7 +346,8 @@ export default function JigsawPuzzle() {
     const [socket, setSocket] = useState();
     const [roomID, setRoomID] = useState();
 
-    const mouseMoveInterval = 250;
+    const canvasResizeDelay = 50;
+    const mouseMoveInterval = 30;
 
     const getLocalScale = useCallback(() => {
         if (canvasRef && canvasRef.current && gameState) {
@@ -602,7 +604,7 @@ export default function JigsawPuzzle() {
             if (canvasRef && canvasRef.current !== null) {
                 canvasRef.current.width = window.innerWidth;
                 canvasRef.current.height = window.innerHeight - document.querySelector('#app_bar').offsetHeight;
-                setIsGeneratePuzzlePieces(true);
+                debounce(() => { setIsGeneratePuzzlePieces(true) }, canvasResizeDelay)();
             }
         }
         window.addEventListener('resize', updateCanvasSize);

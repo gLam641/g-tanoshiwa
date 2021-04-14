@@ -1,6 +1,6 @@
-export function throttle(cb, interval) {
-    let enableCall = true;
+let enableCall = true;
 
+export function throttle(cb, interval) {
     return function (...args) {
         if (!enableCall) return;
 
