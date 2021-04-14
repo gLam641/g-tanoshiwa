@@ -345,7 +345,7 @@ export default function JigsawPuzzle() {
     const [socket, setSocket] = useState();
     const [roomID, setRoomID] = useState();
 
-    const mouseMoveInterval = 50;
+    const mouseMoveInterval = 250;
 
     const getLocalScale = useCallback(() => {
         if (canvasRef && canvasRef.current && gameState) {
