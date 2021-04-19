@@ -767,10 +767,15 @@ export default function JigsawPuzzle() {
 
     function handleLeaveRoom() {
         if (socket && roomID) socket.emit('jigsaw:leaveRoom', roomID);
-        setRoomID(null);
-        setIsHost(false);
         setImageReady(false);
+        setLobby([]);
+        setIsHost(false);
+        setPlayTime(0);
+        setGameState(null);
+        setSelectedPieceId(null);
+        setPuzzlePaths([]);
         setImage(null);
+        setRoomID(null);
         hideAllDialogs();
         setIsGeneralDialogOpen(true);
     };
