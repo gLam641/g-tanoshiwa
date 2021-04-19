@@ -1,5 +1,7 @@
 import React from 'react'; import { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
 import * as io from 'socket.io-client';
+import axios from 'axios';
+import moment from 'moment';
 import {
     Grid,
     TextField,
@@ -15,24 +17,24 @@ import {
     ListItem,
     ListItemIcon,
     ListItemText,
+    FormControl,
+    FormHelperText,
+    Table,
+    TableBody,
+    TableHead,
+    TableRow,
+    TableCell,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
 import SettingsIcon from '@material-ui/icons/Settings';
+import ImageIcon from '@material-ui/icons/Image';
 import PersonIcon from '@material-ui/icons/Person';
+import PublishIcon from '@material-ui/icons/Publish';
 
 import { serverEndPoint } from '../config.js';
 import { throttle } from '../utils/throttle.js';
 import { debounce } from '../utils/debounce.js';
-import defaultImg from '../assets/pekora.png';
-
-// Temporary image
-const img = new Image();
-let isImageReady = false;
-img.src = defaultImg;
-img.addEventListener('load', (e) => {
-    isImageReady = true;
-});
 
 // Constants
 const orientations = makeEnum(['VERTICAL_UP', 'VERTICAL_DOWN', 'HORIZONTAL_RIGHT', 'HORIZONTAL_LEFT']);
@@ -301,6 +303,11 @@ const useStyles = makeStyles((theme) => ({
         top: theme.spacing(2),
         right: theme.spacing(2)
     },
+    imageButtonClass: {
+        position: "absolute",
+        top: theme.spacing(8),
+        right: theme.spacing(2)
+    },
     controlClass: {
         background: 'DeepSkyBlue',
     },
@@ -311,28 +318,51 @@ const useStyles = makeStyles((theme) => ({
             color: 'white'
         }
     },
-    canvasGridClass: {
+    imageClass: {
+        objectFit: 'contain'
+    },
+    imageGridClass: props => ({
+        display: props.isImageDialogOpen ? 'block' : 'none',
         width: "100%",
         justifyContent: "center"
-    },
+    }),
+    canvasGridClass: props => ({
+        display: props.isImageDialogOpen ? 'none' : 'block',
+        width: "100%",
+        justifyContent: "center"
+    }),
     dialogMarginClass: {
         marginTop: theme.spacing(3),
+    },
+    imageUploadClass: {
+        height: "100%"
+    },
+    numPiecesClass: {
+        width: "100%"
+    },
+    inputClass: {
+        display: 'none'
     },
 }));
 
 export default function JigsawPuzzle() {
-    const classes = useStyles();
     const containerRef = useRef(null);
+    const imageRef = useRef(null);
+    const [imageReady, setImageReady] = useState(false);
 
     const [lobby, setLobby] = useState([]);
     const [isHost, setIsHost] = useState(false);
+    const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false);
     const [isGeneralDialogOpen, setIsGeneralDialogOpen] = useState(true);
     const [isSettingDialogOpen, setIsSettingDialogOpen] = useState(false);
+    const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [isRoomDialogOpen, setIsRoomDialogOpen] = useState(false);
     const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
 
+    const [playTime, setPlayTime] = useState(0);
+
     const [name, setName] = useState();
-    const [image, setImage] = useState();
+    const [image, setImage] = useState(null);
     const [joinID, setJoinID] = useState();
     const [rowCol, setRowCol] = useState(5);
 
@@ -345,6 +375,8 @@ export default function JigsawPuzzle() {
     const [puzzlePaths, setPuzzlePaths] = useState([]);
     const [socket, setSocket] = useState();
     const [roomID, setRoomID] = useState();
+
+    const classes = useStyles({ isImageDialogOpen });
 
     const canvasResizeDelay = 50;
     const mouseMoveInterval = 30;
@@ -403,7 +435,7 @@ export default function JigsawPuzzle() {
             context.restore();
 
             // Draw pieces
-            if (isImageReady) {
+            if (imageReady) {
                 gameState.pieces.forEach((piece) => {
                     const path = puzzlePaths[piece.id];
                     if (path) {
@@ -413,7 +445,7 @@ export default function JigsawPuzzle() {
                         context.clip(path);
                         context.scale(localScale.x, localScale.y);
                         context.drawImage(
-                            img,
+                            imageRef.current,
                             -piece.relativeImageTranslation.x,
                             -piece.relativeImageTranslation.y,
                             gameState.frameWidth,
@@ -443,7 +475,15 @@ export default function JigsawPuzzle() {
                 context.restore();
             }
         }
-    }, [gameState, isGeneratePuzzlePieces, puzzlePaths, socket, getLocalScale, lobby]);
+    }, [gameState, isGeneratePuzzlePieces, imageReady, puzzlePaths, socket, getLocalScale, lobby]);
+
+    useEffect(() => {
+        if (imageRef.current) {
+            imageRef.current.addEventListener('load', (e) => {
+                setImageReady(true);
+            });
+        }
+    }, []);
 
     // Socket events
     useEffect(() => {
@@ -454,7 +494,7 @@ export default function JigsawPuzzle() {
         setSocket(newSocket);
 
         newSocket.on('connect', () => {
-            console.log(newSocket.id, newSocket.connected);
+            console.log('Connection to server established');
         });
 
         newSocket.on('disconnect', (reason) => {
@@ -469,8 +509,7 @@ export default function JigsawPuzzle() {
             setIsSettingDialogOpen(true);
         });
 
-        newSocket.on('joinedRoom', (roomID, lobby, name, userID, newState) => {
-            console.log(`Joined room: ${roomID}`);
+        newSocket.on('joinedRoom', (roomID, imgUrl, lobby, userName, userID, newState) => {
             if (roomID) {
                 setRoomID(roomID);
                 setLobby(lobby);
@@ -478,13 +517,28 @@ export default function JigsawPuzzle() {
                     setIsHost(false);
                     setIsGeneratePuzzlePieces(true);
                     setGameState(newState);
+                    if (imageRef && imageRef.current) imageRef.current.src = imgUrl;
                     hideAllDialogs();
                     setIsRoomDialogOpen(true);
+                } else {
+                    setSnackBarSeverity('success');
+                    setSnackBarMessage(`User ${userName} joined the room`);
                 }
             } else {
                 setSnackBarSeverity("warning");
-                setSnackBarMessage(`Join room error: '${name}' is already taken. Please choose a different name`);
+                setSnackBarMessage(`Join room error: '${userName}' is already taken. Please choose a different name`);
             }
+        });
+
+        newSocket.on('finishedGame', (lobby, playTime) => {
+            setLobby(lobby);
+            const duration = moment.duration(playTime);
+            let playTimeStr = '';
+            if (duration.hours() > 0) playTimeStr += duration.hours() + 'h';
+            if (duration.minutes() > 0) playTimeStr += duration.minutes() + 'm';
+            playTimeStr += duration.seconds() + 's';
+            setPlayTime(playTimeStr);
+            setIsResultsDialogOpen(true);
         });
 
         newSocket.on('joinRoomError', (errMsg) => {
@@ -493,13 +547,13 @@ export default function JigsawPuzzle() {
         });
 
         newSocket.on('leftRoom', (lobby, userName) => {
-            if (userName !== '') {
-                console.log(`User ${userName} left the room`);
-            }
+            setSnackBarSeverity('success');
+            setSnackBarMessage(`User ${userName} left the room`);
             setLobby(lobby);
         });
 
         newSocket.on('initializedGame', (newState) => {
+            setImage(null);
             setIsGeneratePuzzlePieces(true);
             setGameState(newState);
             hideAllDialogs();
@@ -606,10 +660,20 @@ export default function JigsawPuzzle() {
                 canvasRef.current.height = window.innerHeight - document.querySelector('#app_bar').offsetHeight;
                 debounce(() => { setIsGeneratePuzzlePieces(true) }, canvasResizeDelay)();
             }
-        }
-        window.addEventListener('resize', updateCanvasSize);
-        updateCanvasSize();
-        return () => window.removeEventListener('resize', updateCanvasSize);
+        };
+        const updateImageDialogSize = () => {
+            if (imageRef && imageRef.current !== null) {
+                imageRef.current.width = window.innerWidth;
+                imageRef.current.height = window.innerHeight - document.querySelector('#app_bar').offsetHeight;
+            }
+        };
+        const updateLayouts = () => {
+            updateCanvasSize();
+            updateImageDialogSize();
+        };
+        window.addEventListener('resize', updateLayouts);
+        updateLayouts();
+        return () => window.removeEventListener('resize', updateLayouts);
     }, []);
 
     useEffect(() => {
@@ -624,9 +688,13 @@ export default function JigsawPuzzle() {
         setSnackBarMessage("");
     };
 
-    // Todo: actually upload an image
     function validateImage() {
-        return true;
+        if (image) {
+            return true;
+        }
+        setSnackBarSeverity("error");
+        setSnackBarMessage('Image is missing');
+        return false;
     };
 
     function validateRoomID() {
@@ -641,9 +709,30 @@ export default function JigsawPuzzle() {
 
     function handleCreateRoom() {
         if (validateSocket('Create room') && validateRoomID() && validateImage()) {
-            // todo: upload image and set to url
-            const imgUrl = '';
-            socket.emit('jigsaw:initGame', roomID, imgUrl, rowCol);
+            const method = 'post';
+            const url = `${serverEndPoint}/jigsawPuzzle/`;
+            const form = new FormData();
+            form.append('roomID', roomID);
+            form.append('image', image, image.name);
+            axios({
+                method,
+                url,
+                data: form,
+                headers: {
+                    'accept': 'application/json',
+                    'Accept-Language': 'en-US,en;q=0.8',
+                    'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
+                }
+            }).then((resp) => {
+                if (resp.status === 200) {
+                    const imgUrl = resp.data.imgUrl;
+                    if (imageRef && imageRef.current) imageRef.current.src = imgUrl;
+                    socket.emit('jigsaw:initGame', roomID, imgUrl, rowCol);
+                }
+            }).catch((err) => {
+                setSnackBarSeverity('error');
+                setSnackBarMessage(`Create room failed: image upload error: ${err}`);
+            });
         }
     };
 
@@ -680,6 +769,8 @@ export default function JigsawPuzzle() {
         if (socket && roomID) socket.emit('jigsaw:leaveRoom', roomID);
         setRoomID(null);
         setIsHost(false);
+        setImageReady(false);
+        setImage(null);
         hideAllDialogs();
         setIsGeneralDialogOpen(true);
     };
@@ -724,10 +815,18 @@ export default function JigsawPuzzle() {
         setIsSettingDialogOpen(false);
         setIsRoomDialogOpen(false);
         setIsJoinDialogOpen(false);
+        setIsImageDialogOpen(false);
+    }
+
+    function onImageUpload(e) {
+        setImage(e.target.files[0]);
     }
 
     return (
         <Grid ref={containerRef} container className={classes.root}>
+            <Grid className={classes.imageGridClass} item>
+                <img ref={imageRef} className={classes.imageClass} alt="uploaded_image"></img>
+            </Grid>
             <Snackbar open={snackBarMessage !== ""} autoHideDuration={2000} onClose={closeSnackbar}>
                 <Alert onClose={closeSnackbar} severity={snackBarSeverity}>
                     {snackBarMessage}
@@ -736,12 +835,60 @@ export default function JigsawPuzzle() {
             <IconButton
                 className={classes.settingsButtonClass}
                 aria-label="settings"
-                color="primary"
+                color={isRoomDialogOpen ? "secondary" : "primary"}
                 onClick={() => { hideAllDialogs(); setIsRoomDialogOpen(true); }}>
                 <SettingsIcon />
             </IconButton>
+            <IconButton
+                className={classes.imageButtonClass}
+                aria-label="settings"
+                color={isImageDialogOpen ? "secondary" : "primary"}
+                onClick={() => { hideAllDialogs(); setIsImageDialogOpen(!isImageDialogOpen) }}>
+                <ImageIcon />
+            </IconButton>
             <Grid className={classes.canvasGridClass} container item>
                 <canvas ref={canvasRef} />
+                <Dialog
+                    fullWidth
+                    maxWidth={'sm'}
+                    open={isResultsDialogOpen}
+                    onClick={() => { setIsResultsDialogOpen(false) }}
+                >
+                    <DialogTitle>Results</DialogTitle>
+                    <Divider />
+                    <Grid container item direction="column">
+                        <Grid item>
+                            <TextField
+                                className={classes.dialogMarginClass}
+                                label="Play Time"
+                                variant="outlined"
+                                fullWidth
+                                disabled
+                                value={playTime}
+                            />
+                        </Grid>
+                        <Grid item>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="center">Player</TableCell>
+                                        <TableCell align="center">Score</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {lobby.map((client) => (
+                                        <TableRow key={'player_' + client.id}>
+                                            <TableCell align="center" component="th" scope="row">
+                                                {client.name}
+                                            </TableCell>
+                                            <TableCell align="center">{`${client.score}/${gameState ? gameState.pieces.length : 0}`}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Grid>
+                    </Grid>
+                </Dialog>
                 <Dialog
                     disableBackdropClick={true}
                     disableEscapeKeyDown={true}
@@ -786,26 +933,47 @@ export default function JigsawPuzzle() {
                             <TextField
                                 label="Image"
                                 variant="outlined"
-                                defaultValue={image}
-                                onChange={(e) => { setImage(e.target.value) }}
+                                className={classes.imageTextClass}
+                                disabled
+                                value={image ? image.name : ''}
+                            //defaultValue={image}
+                            //onChange={(e) => { setImage(e.target.value) }}
                             />
-                            <Button
-                                color="primary"
-                                variant="contained">
-                                Upload
-                            </Button>
-                            <Select
-                                value={rowCol}
-                                onChange={(e) => { setRowCol(e.target.value) }}
-                                name="rowCol"
-                                inputProps={{ 'aria-label': 'rowCol' }}
-                            >
-                                {
-                                    [2, 5, 10, 15, 20, 25].map(i => {
-                                        return <MenuItem key={'row_col_' + i} value={i}>{`${i} x ${i}`}</MenuItem>
-                                    })
-                                }
-                            </Select>
+                            <input
+                                accept="image/*"
+                                className={classes.inputClass}
+                                type="file"
+                                onChange={onImageUpload}
+                                id="image-upload-file"
+                            />
+                            <label htmlFor="image-upload-file">
+                                <Button
+                                    className={classes.imageUploadClass}
+                                    color="primary"
+                                    component="span"
+                                    aria-label="image upload"
+                                    startIcon={<PublishIcon />}
+                                    variant="contained">
+                                    Upload
+                                </Button>
+                            </label>
+                        </Grid>
+                        <Grid className={classes.dialogMarginClass} container item>
+                            <FormControl variant="outlined" className={classes.numPiecesClass}>
+                                <Select
+                                    value={rowCol}
+                                    onChange={(e) => { setRowCol(e.target.value) }}
+                                    name="rowCol"
+                                    inputProps={{ 'aria-label': 'rowCol' }}
+                                >
+                                    {
+                                        [2, 5, 10, 15, 20, 25].map(i => {
+                                            return <MenuItem key={'row_col_' + i} value={i}>{`${i} x ${i}`}</MenuItem>
+                                        })
+                                    }
+                                </Select>
+                                <FormHelperText># of Puzzle Pieces (Row x Col)</FormHelperText>
+                            </FormControl>
                         </Grid>
                         <Button
                             className={classes.dialogMarginClass}
