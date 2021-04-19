@@ -417,7 +417,7 @@ export default function JigsawPuzzle() {
                 setIsGeneratePuzzlePieces(false);
                 setPuzzlePaths(newPuzzlePaths);
             }
-        } else if (canvasRef && canvasRef.current && gameState) {
+        } else if (canvasRef && canvasRef.current) {
             const canvas = canvasRef.current;
             const context = canvas.getContext('2d');
 
@@ -427,39 +427,41 @@ export default function JigsawPuzzle() {
             context.fillRect(0, 0, canvas.width, canvas.height);
             context.restore();
 
-            // Draw frame
-            context.save();
-            context.translate(gameState.frameOffset.x * localScale.x, gameState.frameOffset.y * localScale.y);
-            context.strokeStyle = 'black';
-            context.strokeRect(0, 0, gameState.frameWidth * localScale.x, gameState.frameHeight * localScale.y);
-            context.restore();
+            if (gameState) {
+                // Draw frame
+                context.save();
+                context.translate(gameState.frameOffset.x * localScale.x, gameState.frameOffset.y * localScale.y);
+                context.strokeStyle = 'black';
+                context.strokeRect(0, 0, gameState.frameWidth * localScale.x, gameState.frameHeight * localScale.y);
+                context.restore();
 
-            // Draw pieces
-            if (imageReady) {
-                gameState.pieces.forEach((piece) => {
-                    const path = puzzlePaths[piece.id];
-                    if (path) {
-                        context.save();
-                        context.translate(piece.translate.x * localScale.x, piece.translate.y * localScale.y);
-                        context.save();
-                        context.clip(path);
-                        context.scale(localScale.x, localScale.y);
-                        context.drawImage(
-                            imageRef.current,
-                            -piece.relativeImageTranslation.x,
-                            -piece.relativeImageTranslation.y,
-                            gameState.frameWidth,
-                            gameState.frameHeight);
-                        context.restore();
-                        if (piece.isLocked) {
-                            context.strokeStyle = 'red';
-                        } else if (piece.selectedClient === socket.id) {
-                            context.strokeStyle = 'lime';
+                // Draw pieces
+                if (imageReady) {
+                    gameState.pieces.forEach((piece) => {
+                        const path = puzzlePaths[piece.id];
+                        if (path) {
+                            context.save();
+                            context.translate(piece.translate.x * localScale.x, piece.translate.y * localScale.y);
+                            context.save();
+                            context.clip(path);
+                            context.scale(localScale.x, localScale.y);
+                            context.drawImage(
+                                imageRef.current,
+                                -piece.relativeImageTranslation.x,
+                                -piece.relativeImageTranslation.y,
+                                gameState.frameWidth,
+                                gameState.frameHeight);
+                            context.restore();
+                            if (piece.isLocked) {
+                                context.strokeStyle = 'red';
+                            } else if (piece.selectedClient === socket.id) {
+                                context.strokeStyle = 'lime';
+                            }
+                            context.stroke(path);
+                            context.restore();
                         }
-                        context.stroke(path);
-                        context.restore();
-                    }
-                });
+                    });
+                }
             }
 
             // Render player names
@@ -767,10 +769,15 @@ export default function JigsawPuzzle() {
 
     function handleLeaveRoom() {
         if (socket && roomID) socket.emit('jigsaw:leaveRoom', roomID);
-        setRoomID(null);
-        setIsHost(false);
         setImageReady(false);
+        setLobby([]);
+        setIsHost(false);
+        setPlayTime(0);
+        setGameState(null);
+        setSelectedPieceId(null);
+        setPuzzlePaths([]);
         setImage(null);
+        setRoomID(null);
         hideAllDialogs();
         setIsGeneralDialogOpen(true);
     };
