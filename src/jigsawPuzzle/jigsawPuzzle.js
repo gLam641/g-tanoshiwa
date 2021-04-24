@@ -331,17 +331,14 @@ const useStyles = makeStyles((theme) => ({
         width: "100%",
         justifyContent: "center"
     }),
-    dialogMarginClass: {
-        marginTop: theme.spacing(3),
+    dialogFormFieldClass: {
+        display: 'block',
+        margin: `${theme.spacing(3)}px auto`,
+        width: "90%"
     },
-    imageUploadClass: {
-        height: "100%"
-    },
-    numPiecesClass: {
-        width: "100%"
-    },
-    inputClass: {
-        display: 'none'
+    dialogFormGridClass: {
+        margin: `${theme.spacing(3)}px auto`,
+        width: "90%"
     },
 }));
 
@@ -576,8 +573,8 @@ export default function JigsawPuzzle() {
             setGameState(newState);
         });
 
-        newSocket.on('selectedPiece', (newState, pieceID) => {
-            setSelectedPieceId(pieceID);
+        newSocket.on('selectedPiece', (newState, clientID, pieceID) => {
+            if (newSocket && newSocket.id === clientID) setSelectedPieceId(pieceID);
             setGameState(newState);
         });
 
@@ -863,10 +860,9 @@ export default function JigsawPuzzle() {
                 >
                     <DialogTitle>Results</DialogTitle>
                     <Divider />
-                    <Grid container item direction="column">
+                    <Grid className={classes.dialogFormGridClass} container item direction="column">
                         <Grid item>
                             <TextField
-                                className={classes.dialogMarginClass}
                                 label="Play Time"
                                 variant="outlined"
                                 fullWidth
@@ -899,12 +895,14 @@ export default function JigsawPuzzle() {
                 <Dialog
                     disableBackdropClick={true}
                     disableEscapeKeyDown={true}
+                    fullWidth
+                    maxWidth="xs"
                     open={isGeneralDialogOpen}>
                     <DialogTitle>General Settings</DialogTitle>
                     <Divider />
                     <form noValidate autoComplete="off">
                         <TextField
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             label="Name"
                             variant="outlined"
                             fullWidth
@@ -912,17 +910,15 @@ export default function JigsawPuzzle() {
                             onChange={(e) => { setName(e.target.value) }}
                         />
                         <Button
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             variant="contained"
-                            fullWidth
                             color="primary"
                             onClick={handleHostRoom}>
                             Host Room
-                        </Button>
+                            </Button>
                         <Button
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             variant="contained"
-                            fullWidth
                             color="primary"
                             onClick={handleJoinRoom}>
                             Join Room
@@ -932,41 +928,45 @@ export default function JigsawPuzzle() {
                 <Dialog
                     disableBackdropClick={true}
                     disableEscapeKeyDown={true}
+                    fullWidth
+                    maxWidth="xs"
                     open={isSettingDialogOpen}>
                     <DialogTitle>Game Settings</DialogTitle>
                     <Divider />
                     <form noValidate autoComplete="off">
-                        <Grid className={classes.dialogMarginClass} container item>
-                            <TextField
-                                label="Image"
-                                variant="outlined"
-                                className={classes.imageTextClass}
-                                disabled
-                                value={image ? image.name : ''}
-                            //defaultValue={image}
-                            //onChange={(e) => { setImage(e.target.value) }}
-                            />
-                            <input
-                                accept="image/*"
-                                className={classes.inputClass}
-                                type="file"
-                                onChange={onImageUpload}
-                                id="image-upload-file"
-                            />
-                            <label htmlFor="image-upload-file">
-                                <Button
-                                    className={classes.imageUploadClass}
-                                    color="primary"
-                                    component="span"
-                                    aria-label="image upload"
-                                    startIcon={<PublishIcon />}
-                                    variant="contained">
-                                    Upload
-                                </Button>
-                            </label>
+                        <Grid className={classes.dialogFormGridClass} container item>
+                            <Grid item xs={9}>
+                                <TextField
+                                    label="Image"
+                                    variant="outlined"
+                                    disabled
+                                    style={{ width: '90%' }}
+                                    value={image ? image.name : ''}
+                                />
+                            </Grid>
+                            <Grid item xs={3}>
+                                <input
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    type="file"
+                                    onChange={onImageUpload}
+                                    id="image-upload-file"
+                                />
+                                <label htmlFor="image-upload-file">
+                                    <Button
+                                        style={{ width: '100%', height: '100%' }}
+                                        color="primary"
+                                        component="span"
+                                        aria-label="image upload"
+                                        startIcon={<PublishIcon />}
+                                        variant="contained">
+                                        Upload
+                                    </Button>
+                                </label>
+                            </Grid>
                         </Grid>
-                        <Grid className={classes.dialogMarginClass} container item>
-                            <FormControl variant="outlined" className={classes.numPiecesClass}>
+                        <Grid className={classes.dialogFormFieldClass} container item>
+                            <FormControl variant="outlined" style={{ width: '100%' }}>
                                 <Select
                                     value={rowCol}
                                     onChange={(e) => { setRowCol(e.target.value) }}
@@ -983,7 +983,7 @@ export default function JigsawPuzzle() {
                             </FormControl>
                         </Grid>
                         <Button
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             variant="contained"
                             fullWidth
                             color="primary"
@@ -991,7 +991,7 @@ export default function JigsawPuzzle() {
                             Create Room
                         </Button>
                         <Button
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             variant="contained"
                             fullWidth
                             color="primary"
@@ -1002,13 +1002,15 @@ export default function JigsawPuzzle() {
                 </Dialog>
                 <Dialog
                     open={isRoomDialogOpen}
+                    fullWidth
+                    maxWidth="xs"
                     onClose={hideAllDialogs}>
                     <DialogTitle>Room ID: {roomID}</DialogTitle>
                     <Divider />
-                    <List component="nav" aria-label="lobby">
+                    <List className={classes.dialogFormFieldClass} component="nav" aria-label="lobby">
                         {
                             lobby.map(client => (
-                                <ListItem key={`lobby_client_${client.name}`} button>
+                                <ListItem style={{ padding: '0' }} key={`lobby_client_${client.name}`} button>
                                     <ListItemIcon>
                                         <PersonIcon color={client.role === "host" ? "primary" : "secondary"} />
                                     </ListItemIcon>
@@ -1020,7 +1022,7 @@ export default function JigsawPuzzle() {
                     <Divider />
                     <form noValidate autoComplete="off">
                         <Button
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             variant="contained"
                             fullWidth
                             color="primary"
@@ -1030,7 +1032,7 @@ export default function JigsawPuzzle() {
                         {
                             isHost ?
                                 <Button
-                                    className={classes.dialogMarginClass}
+                                    className={classes.dialogFormFieldClass}
                                     variant="contained"
                                     fullWidth
                                     color="primary"
@@ -1041,7 +1043,7 @@ export default function JigsawPuzzle() {
                                 <></>
                         }
                         <Button
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             variant="contained"
                             fullWidth
                             color="primary"
@@ -1053,13 +1055,15 @@ export default function JigsawPuzzle() {
                 <Dialog
                     disableBackdropClick={true}
                     disableEscapeKeyDown={true}
+                    fullWidth
+                    maxWidth="xs"
                     open={isJoinDialogOpen}
                     onClose={hideAllDialogs}>
                     <DialogTitle>Join Room</DialogTitle>
                     <Divider />
                     <form noValidate autoComplete="off">
                         <TextField
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             label="Room ID"
                             variant="outlined"
                             fullWidth
@@ -1067,7 +1071,7 @@ export default function JigsawPuzzle() {
                             onChange={(e) => { setJoinID(e.target.value) }}
                         />
                         <Button
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             variant="contained"
                             fullWidth
                             color="primary"
@@ -1075,7 +1079,7 @@ export default function JigsawPuzzle() {
                             Join
                         </Button>
                         <Button
-                            className={classes.dialogMarginClass}
+                            className={classes.dialogFormFieldClass}
                             variant="contained"
                             fullWidth
                             color="primary"
