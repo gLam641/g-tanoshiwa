@@ -627,6 +627,10 @@ export default function JigsawPuzzle() {
             if (newState) setGameState(newState);
         });
 
+        newSocket.on('updatedPlayerPosition', (lobby) => {
+            setLobby(lobby);
+        });
+
         return () => {
             newSocket.emit('jigsaw:leaveRoom', roomID);
         };
@@ -802,6 +806,17 @@ export default function JigsawPuzzle() {
 
     function handlePlay() {
         hideAllDialogs();
+    };
+
+    function handleAdvancedSaveAndClose(e) {
+        if (validateSocket('AdvancedClose')) {
+            const localScale = getLocalScale();
+            const posX = e.offsetX / localScale.x;
+            const posY = e.offsetY / localScale.y;
+
+            socket.emit('jigsaw:updatePlayerPosition', roomID, posX, posY, isShowMyPosition);
+        }
+        handlePlay();
     };
 
     function handleAdvanced() {
@@ -1147,7 +1162,7 @@ export default function JigsawPuzzle() {
                             variant="contained"
                             fullWidth
                             color="primary"
-                            onClick={handlePlay}>
+                            onClick={(e) => handleAdvancedSaveAndClose(e)}>
                             Save & Close
                         </Button>
                     </form>
