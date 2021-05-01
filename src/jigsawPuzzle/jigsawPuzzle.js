@@ -24,6 +24,9 @@ import {
     TableHead,
     TableRow,
     TableCell,
+    FormControlLabel,
+    FormGroup,
+    Switch
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -263,8 +266,8 @@ function generateRoundedPath(roundType, start, end, radius = 0) {
 //      roundType: number
 //      start    : { x: number, y: number }
 //      end      : { x: number, y: number }
-function addRoundedPath(path, roundType, start, end) {
-    const { line1End, arc1, bezier, arc2 } = generateRoundedPath(roundType, start, end);
+function addRoundedPath(path, roundType, start, end, orthLength) {
+    const { line1End, arc1, bezier, arc2 } = generateRoundedPath(roundType, start, end, orthLength / 3);
     path.lineTo(line1End.x, line1End.y);
     path.arcTo(arc1.c1.x, arc1.c1.y, arc1.c2.x, arc1.c2.y, arc1.radius);
     path.bezierCurveTo(bezier.c1.x, bezier.c1.y, bezier.c2.x, bezier.c2.y, bezier.end.x, bezier.end.y);
@@ -279,13 +282,14 @@ function addRoundedPath(path, roundType, start, end) {
 //      start    : { x: number, y: number }
 //      end      : { x: number, y: number }
 //      scale    : { x: number, y: number }
-function addPath(path, roundType, start, end, scale = { x: 1, y: 1 }) {
+//      orthLength: number
+function addPath(path, roundType, start, end, scale, orthLength) {
     const scaled_start = { x: Math.floor(start.x * scale.x), y: Math.floor(start.y * scale.y) };
     const scaled_end = { x: Math.floor(end.x * scale.x), y: Math.floor(end.y * scale.y) };
     if (roundType === roundTypes.FLAT) {
         path.lineTo(scaled_end.x, scaled_end.y);
     } else {
-        addRoundedPath(path, roundType, scaled_start, scaled_end);
+        addRoundedPath(path, roundType, scaled_start, scaled_end, orthLength);
     }
 }
 
@@ -352,6 +356,7 @@ export default function JigsawPuzzle() {
     const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false);
     const [isGeneralDialogOpen, setIsGeneralDialogOpen] = useState(true);
     const [isSettingDialogOpen, setIsSettingDialogOpen] = useState(false);
+    const [isAdvancedDialogOpen, setIsAdvancedDialogOpen] = useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [isRoomDialogOpen, setIsRoomDialogOpen] = useState(false);
     const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
@@ -372,6 +377,8 @@ export default function JigsawPuzzle() {
     const [puzzlePaths, setPuzzlePaths] = useState([]);
     const [socket, setSocket] = useState();
     const [roomID, setRoomID] = useState();
+    const [isShowMyPosition, setIsShowMyPosition] = useState(false);
+    const [isShowPlayersPosition, setIsShowPlayersPosition] = useState(true);
 
     const classes = useStyles({ isImageDialogOpen });
 
@@ -405,10 +412,10 @@ export default function JigsawPuzzle() {
                 gameState.pieces.forEach((piece) => {
                     const path = new Path2D();
                     path.moveTo(0, 0);
-                    addPath(path, roundTypes[piece.strPathTypes.top], { x: 0, y: 0 }, { x: piece.width, y: 0 }, localScale);
-                    addPath(path, roundTypes[piece.strPathTypes.right], { x: piece.width, y: 0 }, { x: piece.width, y: piece.height }, localScale);
-                    addPath(path, roundTypes[piece.strPathTypes.bottom], { x: piece.width, y: piece.height }, { x: 0, y: piece.height }, localScale);
-                    addPath(path, roundTypes[piece.strPathTypes.left], { x: 0, y: piece.height }, { x: 0, y: 0 }, localScale);
+                    addPath(path, roundTypes[piece.strPathTypes.top], { x: 0, y: 0 }, { x: piece.width, y: 0 }, localScale, piece.height * localScale.y);
+                    addPath(path, roundTypes[piece.strPathTypes.right], { x: piece.width, y: 0 }, { x: piece.width, y: piece.height }, localScale, piece.width * localScale.x);
+                    addPath(path, roundTypes[piece.strPathTypes.bottom], { x: piece.width, y: piece.height }, { x: 0, y: piece.height }, localScale, piece.height * localScale.y);
+                    addPath(path, roundTypes[piece.strPathTypes.left], { x: 0, y: piece.height }, { x: 0, y: 0 }, localScale, piece.width * localScale.x);
                     newPuzzlePaths[piece.id] = path;
                 });
                 setIsGeneratePuzzlePieces(false);
@@ -434,6 +441,33 @@ export default function JigsawPuzzle() {
 
                 // Draw pieces
                 if (imageReady) {
+                    // Set image to canvas' aspect ratio
+                    const { naturalWidth: imageSrcWidth, naturalHeight: imageSrcHeight } = imageRef.current;
+                    const imageTargetWidth = gameState.frameWidth * localScale.x;
+                    const imageTargetHeight = gameState.frameHeight * localScale.y;
+                    const srcToTargetScale = {
+                        x: imageTargetWidth / imageSrcWidth,
+                        y: imageTargetHeight / imageSrcHeight,
+                    };
+                    const imageSrcSize = [imageSrcWidth, imageSrcHeight];
+                    if (srcToTargetScale.x < 1 && srcToTargetScale.y < 1) {
+                        if (srcToTargetScale.x < srcToTargetScale.y) {
+                            imageSrcSize[0] *= srcToTargetScale.y;
+                        } else {
+                            imageSrcSize[1] *= srcToTargetScale.x;
+                        }
+                    } else {
+                        if (srcToTargetScale.x > srcToTargetScale.y) {
+                            imageSrcSize[1] *= srcToTargetScale.y / srcToTargetScale.x;
+                        } else {
+                            imageSrcSize[0] *= srcToTargetScale.x / srcToTargetScale.y;
+                        }
+                    }
+                    const imageSrc = [
+                        (Math.abs(imageSrcWidth - imageSrcSize[0])) / 2,
+                        (Math.abs(imageSrcHeight - imageSrcSize[1])) / 2,
+                        ...imageSrcSize
+                    ];
                     gameState.pieces.forEach((piece) => {
                         const path = puzzlePaths[piece.id];
                         if (path) {
@@ -442,17 +476,23 @@ export default function JigsawPuzzle() {
                             context.save();
                             context.clip(path);
                             context.scale(localScale.x, localScale.y);
-                            context.drawImage(
-                                imageRef.current,
+                            const imageDest = [
                                 -piece.relativeImageTranslation.x,
                                 -piece.relativeImageTranslation.y,
                                 gameState.frameWidth,
-                                gameState.frameHeight);
+                                gameState.frameHeight
+                            ];
+                            context.drawImage(
+                                imageRef.current,
+                                ...imageSrc,
+                                ...imageDest);
                             context.restore();
                             if (piece.isLocked) {
                                 context.strokeStyle = 'red';
                             } else if (piece.selectedClient === socket.id) {
                                 context.strokeStyle = 'lime';
+                            } else if (piece.selectedClient) {
+                                context.strokeStyle = 'violet';
                             }
                             context.stroke(path);
                             context.restore();
@@ -462,7 +502,7 @@ export default function JigsawPuzzle() {
             }
 
             // Render player names
-            if (lobby) {
+            if (isShowPlayersPosition && lobby) {
                 context.save();
                 context.fillStyle = 'blue';
                 context.font = "1.3em Arial";
@@ -474,7 +514,7 @@ export default function JigsawPuzzle() {
                 context.restore();
             }
         }
-    }, [gameState, isGeneratePuzzlePieces, imageReady, puzzlePaths, socket, getLocalScale, lobby]);
+    }, [gameState, isGeneratePuzzlePieces, isShowPlayersPosition, imageReady, puzzlePaths, socket, getLocalScale, lobby]);
 
     useEffect(() => {
         if (imageRef.current) {
@@ -486,6 +526,7 @@ export default function JigsawPuzzle() {
 
     // Socket events
     useEffect(() => {
+        let roomID;
         const newSocket = io(serverEndPoint, {
             withCredentials: true,
         });
@@ -500,17 +541,19 @@ export default function JigsawPuzzle() {
             console.log(`Disconnected: ${reason}`);
         });
 
-        newSocket.on('createdRoom', (roomID, lobby) => {
-            setRoomID(roomID);
+        newSocket.on('createdRoom', (newRoomID, lobby) => {
+            roomID = newRoomID;
+            setRoomID(newRoomID);
             setLobby(lobby);
             setIsHost(true);
             hideAllDialogs();
             setIsSettingDialogOpen(true);
         });
 
-        newSocket.on('joinedRoom', (roomID, imgUrl, lobby, userName, userID, newState) => {
-            if (roomID) {
-                setRoomID(roomID);
+        newSocket.on('joinedRoom', (newRoomID, imgUrl, lobby, userName, userID, newState) => {
+            if (newRoomID) {
+                roomID = newRoomID;
+                setRoomID(newRoomID);
                 setLobby(lobby);
                 if (newSocket.id === userID) {
                     setIsHost(false);
@@ -545,7 +588,8 @@ export default function JigsawPuzzle() {
             setSnackBarMessage(errMsg);
         });
 
-        newSocket.on('leftRoom', (lobby, userName) => {
+        newSocket.on('leftRoom', (lobby, userName, newState) => {
+            if (newState) setGameState(newState);
             setSnackBarSeverity('success');
             setSnackBarMessage(`User ${userName} left the room`);
             setLobby(lobby);
@@ -580,13 +624,11 @@ export default function JigsawPuzzle() {
 
         newSocket.on('mouseMove', (lobby, newState) => {
             setLobby(lobby);
-            if (newState) {
-                setGameState(newState);
-            }
+            if (newState) setGameState(newState);
         });
 
         return () => {
-            newSocket.emit('jigsaw:leaveRoom');
+            newSocket.emit('jigsaw:leaveRoom', roomID);
         };
     }, []);
 
@@ -627,12 +669,12 @@ export default function JigsawPuzzle() {
         };
 
         const handleMouseMove = (e) => {
-            if (socket && roomID) {
+            if (socket && roomID && (isShowMyPosition || selectedPieceID !== null)) {
                 const localScale = getLocalScale();
                 const posX = e.offsetX / localScale.x;
                 const posY = e.offsetY / localScale.y;
 
-                socket.emit('jigsaw:mouseMove', roomID, selectedPieceID, posX, posY);
+                socket.emit('jigsaw:mouseMove', roomID, selectedPieceID, posX, posY, isShowMyPosition);
             }
         };
 
@@ -649,7 +691,7 @@ export default function JigsawPuzzle() {
                 canvas.removeEventListener('mousemove', throttledMouseHandler);
             }
         });
-    }, [canvasRef, gameState, puzzlePaths, socket, roomID, selectedPieceID, getLocalScale]);
+    }, [canvasRef, gameState, puzzlePaths, socket, roomID, selectedPieceID, getLocalScale, isShowPlayersPosition, isShowMyPosition]);
 
     // Canvas size changes
     useLayoutEffect(() => {
@@ -740,6 +782,10 @@ export default function JigsawPuzzle() {
         setIsGeneralDialogOpen(true);
     };
 
+    function handleAdvancedToggle(event, setFn) {
+        if (event && event.target) setFn(event.target.checked);
+    };
+
     function handleHostRoom() {
         if (validateName() && validateSocket('Host room')) {
             socket.emit('jigsaw:createRoom', name);
@@ -756,6 +802,11 @@ export default function JigsawPuzzle() {
 
     function handlePlay() {
         hideAllDialogs();
+    };
+
+    function handleAdvanced() {
+        hideAllDialogs();
+        setIsAdvancedDialogOpen(true);
     };
 
     function handleRestartGame() {
@@ -817,6 +868,7 @@ export default function JigsawPuzzle() {
     function hideAllDialogs() {
         setIsGeneralDialogOpen(false);
         setIsSettingDialogOpen(false);
+        setIsAdvancedDialogOpen(false);
         setIsRoomDialogOpen(false);
         setIsJoinDialogOpen(false);
         setIsImageDialogOpen(false);
@@ -1029,6 +1081,14 @@ export default function JigsawPuzzle() {
                             onClick={handlePlay}>
                             Play
                         </Button>
+                        <Button
+                            className={classes.dialogFormFieldClass}
+                            variant="contained"
+                            fullWidth
+                            color="primary"
+                            onClick={handleAdvanced}>
+                            Advanced Settings
+                        </Button>
                         {
                             isHost ?
                                 <Button
@@ -1049,6 +1109,46 @@ export default function JigsawPuzzle() {
                             color="primary"
                             onClick={handleLeaveRoom}>
                             Leave Room
+                        </Button>
+                    </form>
+                </Dialog>
+                <Dialog
+                    disableBackdropClick={true}
+                    disableEscapeKeyDown={true}
+                    fullWidth
+                    maxWidth="xs"
+                    open={isAdvancedDialogOpen}
+                    onClose={hideAllDialogs}>
+                    <DialogTitle>Advanced Settings</DialogTitle>
+                    <Divider />
+                    <form noValidate autoComplete="off">
+                        <FormGroup className={classes.dialogFormFieldClass}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={isShowMyPosition}
+                                        onChange={(ev) => handleAdvancedToggle(ev, setIsShowMyPosition)}
+                                        name="showMyPosition"
+                                    />}
+                                label="Allow others to see my position"
+                            />
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={isShowPlayersPosition}
+                                        onChange={(ev) => handleAdvancedToggle(ev, setIsShowPlayersPosition)}
+                                        name="showPlayersPosition"
+                                    />}
+                                label="Show other players' position"
+                            />
+                        </FormGroup>
+                        <Button
+                            className={classes.dialogFormFieldClass}
+                            variant="contained"
+                            fullWidth
+                            color="primary"
+                            onClick={handlePlay}>
+                            Save & Close
                         </Button>
                     </form>
                 </Dialog>
