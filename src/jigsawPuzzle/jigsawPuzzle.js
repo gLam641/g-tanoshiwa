@@ -26,7 +26,10 @@ import {
     TableCell,
     FormControlLabel,
     FormGroup,
-    Switch
+    Switch,
+    GridList,
+    GridListTile,
+    GridListTileBar
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -344,12 +347,49 @@ const useStyles = makeStyles((theme) => ({
         margin: `${theme.spacing(3)}px auto`,
         width: "90%"
     },
+    gridRootClass: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'space-around',
+        overflow: 'hidden',
+        backgroundColor: theme.palette.background.paper,
+    },
+    gridListClass: {
+        flexWrap: 'nowrap'
+    },
+    gridListTileBarTitleSelectedClass: {
+        color: 'red',
+    },
+    gridListTileBarTitleClass: {
+        color: 'white',
+    },
+    gridListTileBarClass: {
+        background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+    }
 }));
 
 export default function JigsawPuzzle() {
     const containerRef = useRef(null);
     const imageRef = useRef(null);
     const [imageReady, setImageReady] = useState(false);
+    const [useCustomImage, setUseCustomImage] = useState(true);
+    const stockImageDir = `${serverEndPoint}/images/jigsawPuzzles/default`;
+    const [stockImages, setStockImages] = useState([
+        {
+            url: `${stockImageDir}/fubuki.jpg`,
+            title: 'Fubuki'
+        },
+        {
+            url: `${stockImageDir}/pekora.png`,
+            title: 'Pekora'
+        },
+        {
+            url: `${stockImageDir}/praying_squirrel.jpg`,
+            title: 'Praying Squirrel'
+        },
+    ]);
+    const [stockImageSelected, setStockImageSelected] = useState();
+    const [isRotation, setIsRotation] = useState(false);
 
     const [lobby, setLobby] = useState([]);
     const [isHost, setIsHost] = useState(false);
@@ -472,8 +512,21 @@ export default function JigsawPuzzle() {
                         const path = puzzlePaths[piece.id];
                         if (path) {
                             context.save();
+
+                            // Rotate piece at its center
+                            const pieceCenter = {
+                                x: (piece.translate.x + piece.width / 2) * localScale.x,
+                                y: (piece.translate.y + piece.height / 2) * localScale.y
+                            };
+                            context.translate(pieceCenter.x, pieceCenter.y);
+                            context.rotate(piece.rotation * Math.PI / 180);
+                            context.translate(-pieceCenter.x, -pieceCenter.y);
+
+                            // Translate to correct position
                             context.translate(piece.translate.x * localScale.x, piece.translate.y * localScale.y);
                             context.save();
+
+                            // Draw clipped image on piece
                             context.clip(path);
                             context.scale(localScale.x, localScale.y);
                             const imageDest = [
@@ -487,6 +540,8 @@ export default function JigsawPuzzle() {
                                 ...imageSrc,
                                 ...imageDest);
                             context.restore();
+
+                            // Draw outline on piece
                             if (piece.isLocked) {
                                 context.strokeStyle = 'red';
                             } else if (piece.selectedClient === socket.id) {
@@ -495,6 +550,7 @@ export default function JigsawPuzzle() {
                                 context.strokeStyle = 'violet';
                             }
                             context.stroke(path);
+
                             context.restore();
                         }
                     });
@@ -622,6 +678,10 @@ export default function JigsawPuzzle() {
             setGameState(newState);
         });
 
+        newSocket.on('rotatedPiece', (newState) => {
+            setGameState(newState);
+        });
+
         newSocket.on('mouseMove', (lobby, newState) => {
             setLobby(lobby);
             if (newState) setGameState(newState);
@@ -655,6 +715,15 @@ export default function JigsawPuzzle() {
                 gameState.pieces.forEach((piece) => {
                     const path = puzzlePaths[piece.id];
                     context.save();
+                    // Rotate piece at its center
+                    const pieceCenter = {
+                        x: (piece.translate.x + piece.width / 2) * localScale.x,
+                        y: (piece.translate.y + piece.height / 2) * localScale.y
+                    };
+                    context.translate(pieceCenter.x, pieceCenter.y);
+                    context.rotate(piece.rotation * Math.PI / 180);
+                    context.translate(-pieceCenter.x, -pieceCenter.y);
+
                     context.translate(piece.translate.x * localScale.x, piece.translate.y * localScale.y);
                     if (!piece.isLocked &&
                         (piece.selectedClient === null || piece.selectedClient === socket.id) &&
@@ -672,6 +741,15 @@ export default function JigsawPuzzle() {
             }
         };
 
+        const handleRightClick = (e) => {
+            e.preventDefault();
+            if (selectedPieceID !== null &&
+                socket &&
+                roomID) {
+                socket.emit('jigsaw:rotate', roomID, selectedPieceID)
+            }
+        };
+
         const handleMouseMove = (e) => {
             if (socket && roomID && (isShowMyPosition || selectedPieceID !== null)) {
                 const localScale = getLocalScale();
@@ -686,12 +764,14 @@ export default function JigsawPuzzle() {
 
         if (canvas) {
             canvas.addEventListener('click', handleClick);
+            canvas.addEventListener('contextmenu', handleRightClick);
             canvas.addEventListener('mousemove', throttledMouseHandler);
         }
 
         return (() => {
             if (canvas) {
                 canvas.removeEventListener('click', handleClick);
+                canvas.removeEventListener('contextmenu', handleRightClick);
                 canvas.removeEventListener('mousemove', throttledMouseHandler);
             }
         });
@@ -733,11 +813,20 @@ export default function JigsawPuzzle() {
         setSnackBarMessage("");
     };
 
+    function validateStockImage() {
+        if (stockImageSelected) {
+            return true;
+        }
+        setSnackBarSeverity('error');
+        setSnackBarMessage('Must choose a stock image');
+        return false;
+    };
+
     function validateImage() {
         if (image) {
             return true;
         }
-        setSnackBarSeverity("error");
+        setSnackBarSeverity('error');
         setSnackBarMessage('Image is missing');
         return false;
     };
@@ -753,31 +842,37 @@ export default function JigsawPuzzle() {
     };
 
     function handleCreateRoom() {
-        if (validateSocket('Create room') && validateRoomID() && validateImage()) {
-            const method = 'post';
-            const url = `${serverEndPoint}/jigsawPuzzle/`;
-            const form = new FormData();
-            form.append('roomID', roomID);
-            form.append('image', image, image.name);
-            axios({
-                method,
-                url,
-                data: form,
-                headers: {
-                    'accept': 'application/json',
-                    'Accept-Language': 'en-US,en;q=0.8',
-                    'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
-                }
-            }).then((resp) => {
-                if (resp.status === 200) {
-                    const imgUrl = resp.data.imgUrl;
-                    if (imageRef && imageRef.current) imageRef.current.src = imgUrl;
-                    socket.emit('jigsaw:initGame', roomID, imgUrl, rowCol);
-                }
-            }).catch((err) => {
-                setSnackBarSeverity('error');
-                setSnackBarMessage(`Create room failed: image upload error: ${err}`);
-            });
+        if (validateRoomID()) {
+            if (!useCustomImage && validateStockImage()) {
+                if (imageRef && imageRef.current) imageRef.current.src = stockImageSelected;
+                socket.emit('jigsaw:initGame', roomID, stockImageSelected, rowCol, isRotation);
+            }
+            if (useCustomImage && validateSocket('Create room') && validateImage()) {
+                const method = 'post';
+                const url = `${serverEndPoint}/jigsawPuzzle/`;
+                const form = new FormData();
+                form.append('roomID', roomID);
+                form.append('image', image, image.name);
+                axios({
+                    method,
+                    url,
+                    data: form,
+                    headers: {
+                        'accept': 'application/json',
+                        'Accept-Language': 'en-US,en;q=0.8',
+                        'Content-Type': `multipart/form-data; boundary=${form._boundary}`,
+                    }
+                }).then((resp) => {
+                    if (resp.status === 200) {
+                        const imgUrl = resp.data.imgUrl;
+                        if (imageRef && imageRef.current) imageRef.current.src = imgUrl;
+                        socket.emit('jigsaw:initGame', roomID, imgUrl, rowCol, isRotation);
+                    }
+                }).catch((err) => {
+                    setSnackBarSeverity('error');
+                    setSnackBarMessage(`Create room failed: image upload error: ${err}`);
+                });
+            }
         }
     };
 
@@ -893,6 +988,10 @@ export default function JigsawPuzzle() {
         setImage(e.target.files[0]);
     }
 
+    function handleStockImageClick(e) {
+        setStockImageSelected(e.target.src);
+    }
+
     return (
         <Grid ref={containerRef} container className={classes.root}>
             <Grid className={classes.imageGridClass} item>
@@ -1002,36 +1101,92 @@ export default function JigsawPuzzle() {
                     <Divider />
                     <form noValidate autoComplete="off">
                         <Grid className={classes.dialogFormGridClass} container item>
-                            <Grid item xs={9}>
-                                <TextField
-                                    label="Image"
-                                    variant="outlined"
-                                    disabled
-                                    style={{ width: '90%' }}
-                                    value={image ? image.name : ''}
-                                />
-                            </Grid>
-                            <Grid item xs={3}>
-                                <input
-                                    accept="image/*"
-                                    style={{ display: 'none' }}
-                                    type="file"
-                                    onChange={onImageUpload}
-                                    id="image-upload-file"
-                                />
-                                <label htmlFor="image-upload-file">
-                                    <Button
-                                        style={{ width: '100%', height: '100%' }}
-                                        color="primary"
-                                        component="span"
-                                        aria-label="image upload"
-                                        startIcon={<PublishIcon />}
-                                        variant="contained">
-                                        Upload
-                                    </Button>
-                                </label>
-                            </Grid>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        color='primary'
+                                        checked={isRotation}
+                                        onChange={(ev) => setIsRotation(ev.target.checked)}
+                                        name="isRotation"
+                                    />}
+                                label={isRotation ? "Puzzle pieces can rotate" : "Puzzle pieces can not rotate"}
+                            />
                         </Grid>
+                        <Grid className={classes.dialogFormGridClass} container item>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        color='primary'
+                                        checked={useCustomImage}
+                                        onChange={(ev) => setUseCustomImage(ev.target.checked)}
+                                        name="useCustomImage"
+                                    />}
+                                label={useCustomImage ? "Use custom image" : "Use stock image"}
+                            />
+                        </Grid>
+                        {
+                            useCustomImage ?
+                                <Grid className={classes.dialogFormGridClass} container item>
+                                    <Grid item xs={9}>
+                                        <TextField
+                                            label="Image"
+                                            variant="outlined"
+                                            disabled
+                                            style={{ width: '90%' }}
+                                            value={image ? image.name : ''}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={3}>
+                                        <input
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            type="file"
+                                            onChange={onImageUpload}
+                                            id="image-upload-file"
+                                        />
+                                        <label htmlFor="image-upload-file">
+                                            <Button
+                                                style={{ width: '100%', height: '100%' }}
+                                                color="primary"
+                                                component="span"
+                                                aria-label="image upload"
+                                                startIcon={<PublishIcon />}
+                                                variant="contained">
+                                                Upload
+                                    </Button>
+                                        </label>
+                                    </Grid>
+                                </Grid>
+                                :
+                                <div className={classes.gridRootClass}>
+                                    <GridList className={classes.gridListClass} col={2.5}>
+                                        {
+                                            stockImages.map((si) => (
+                                                <GridListTile key={si.url}>
+                                                    <img
+                                                        style={{
+                                                            objectFit: 'contain',
+                                                            height: '100%'
+                                                        }}
+                                                        src={si.url}
+                                                        alt={si.title}
+                                                        onClick={handleStockImageClick}
+                                                    />
+                                                    <GridListTileBar
+                                                        title={si.title}
+                                                        classes={{
+                                                            root: classes.gridListTileBarClass,
+                                                            title: stockImageSelected === si.url ?
+                                                                classes.gridListTileBarTitleSelectedClass :
+                                                                classes.gridListTileBarTitleClass,
+                                                        }}
+                                                    />
+                                                </GridListTile>
+                                            ))
+                                        }
+                                    </GridList>
+                                </div>
+                        }
                         <Grid className={classes.dialogFormFieldClass} container item>
                             <FormControl variant="outlined" style={{ width: '100%' }}>
                                 <Select
@@ -1141,6 +1296,7 @@ export default function JigsawPuzzle() {
                             <FormControlLabel
                                 control={
                                     <Switch
+                                        color='primary'
                                         checked={isShowMyPosition}
                                         onChange={(ev) => handleAdvancedToggle(ev, setIsShowMyPosition)}
                                         name="showMyPosition"
@@ -1150,6 +1306,7 @@ export default function JigsawPuzzle() {
                             <FormControlLabel
                                 control={
                                     <Switch
+                                        color='primary'
                                         checked={isShowPlayersPosition}
                                         onChange={(ev) => handleAdvancedToggle(ev, setIsShowPlayersPosition)}
                                         name="showPlayersPosition"
