@@ -368,26 +368,27 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
+const stockImageDir = `${serverEndPoint}/images/jigsawPuzzles/default`;
+const stockImages = [
+    {
+        url: `${stockImageDir}/fubuki.jpg`,
+        title: 'Fubuki'
+    },
+    {
+        url: `${stockImageDir}/pekora.png`,
+        title: 'Pekora'
+    },
+    {
+        url: `${stockImageDir}/praying_squirrel.jpg`,
+        title: 'Praying Squirrel'
+    },
+];
+
 export default function JigsawPuzzle() {
     const containerRef = useRef(null);
     const imageRef = useRef(null);
     const [imageReady, setImageReady] = useState(false);
     const [useCustomImage, setUseCustomImage] = useState(true);
-    const stockImageDir = `${serverEndPoint}/images/jigsawPuzzles/default`;
-    const [stockImages, setStockImages] = useState([
-        {
-            url: `${stockImageDir}/fubuki.jpg`,
-            title: 'Fubuki'
-        },
-        {
-            url: `${stockImageDir}/pekora.png`,
-            title: 'Pekora'
-        },
-        {
-            url: `${stockImageDir}/praying_squirrel.jpg`,
-            title: 'Praying Squirrel'
-        },
-    ]);
     const [stockImageSelected, setStockImageSelected] = useState();
     const [isRotation, setIsRotation] = useState(false);
 
