@@ -41,6 +41,7 @@ import PublishIcon from '@material-ui/icons/Publish';
 import { serverEndPoint } from '../config.js';
 import { throttle } from '../utils/throttle.js';
 import { debounce } from '../utils/debounce.js';
+import { capitalizedWords } from '../utils/string.js';
 
 // Constants
 const orientations = makeEnum(['VERTICAL_UP', 'VERTICAL_DOWN', 'HORIZONTAL_RIGHT', 'HORIZONTAL_LEFT']);
@@ -420,6 +421,8 @@ export default function JigsawPuzzle() {
     const [roomID, setRoomID] = useState();
     const [isShowMyPosition, setIsShowMyPosition] = useState(false);
     const [isShowPlayersPosition, setIsShowPlayersPosition] = useState(true);
+    const [isMaintainAspectRatio, setIsMaintainAspectRatio] = useState(false);
+    const [controlStyle, setControlStyle] = useState('click');
 
     const classes = useStyles({ isImageDialogOpen });
 
@@ -482,33 +485,35 @@ export default function JigsawPuzzle() {
 
                 // Draw pieces
                 if (imageReady) {
-                    // Set image to canvas' aspect ratio
+                    // Calculate image proportions to maintain aspect ratio
                     const { naturalWidth: imageSrcWidth, naturalHeight: imageSrcHeight } = imageRef.current;
-                    const imageTargetWidth = gameState.frameWidth * localScale.x;
-                    const imageTargetHeight = gameState.frameHeight * localScale.y;
-                    const srcToTargetScale = {
-                        x: imageTargetWidth / imageSrcWidth,
-                        y: imageTargetHeight / imageSrcHeight,
-                    };
-                    const imageSrcSize = [imageSrcWidth, imageSrcHeight];
-                    if (srcToTargetScale.x < 1 && srcToTargetScale.y < 1) {
-                        if (srcToTargetScale.x < srcToTargetScale.y) {
-                            imageSrcSize[0] *= srcToTargetScale.y;
-                        } else {
-                            imageSrcSize[1] *= srcToTargetScale.x;
-                        }
+                    let imageDestSize;
+                    if (imageSrcWidth > imageSrcHeight) {
+                        imageDestSize = [
+                            gameState.frameWidth,
+                            gameState.frameHeight * imageSrcHeight / imageSrcWidth
+                        ];
                     } else {
-                        if (srcToTargetScale.x > srcToTargetScale.y) {
-                            imageSrcSize[1] *= srcToTargetScale.y / srcToTargetScale.x;
-                        } else {
-                            imageSrcSize[0] *= srcToTargetScale.x / srcToTargetScale.y;
-                        }
+                        imageDestSize = [
+                            gameState.frameWidth * imageSrcWidth / imageSrcHeight,
+                            gameState.frameHeight
+                        ];
                     }
-                    const imageSrc = [
-                        (Math.abs(imageSrcWidth - imageSrcSize[0])) / 2,
-                        (Math.abs(imageSrcHeight - imageSrcSize[1])) / 2,
-                        ...imageSrcSize
-                    ];
+                    // Consider local scale aspect ratio
+                    if (localScale.x > localScale.y) {
+                        imageDestSize[1] *= localScale.x / localScale.y;
+                    } else {
+                        imageDestSize[0] *= localScale.y / localScale.x;
+                    }
+                    // Ensure final size is within bounds of frame
+                    const boundingFactor = Math.max(1, imageDestSize[0] / gameState.frameWidth, imageDestSize[1] / gameState.frameHeight);
+                    imageDestSize = imageDestSize.map(x => x / boundingFactor);
+
+                    const imageDestOffset = {
+                        x: (gameState.frameWidth - imageDestSize[0]) / 2,
+                        y: (gameState.frameHeight - imageDestSize[1]) / 2,
+                    };
+
                     gameState.pieces.forEach((piece) => {
                         const path = puzzlePaths[piece.id];
                         if (path) {
@@ -530,18 +535,25 @@ export default function JigsawPuzzle() {
                             // Draw clipped image on piece
                             context.clip(path);
                             context.scale(localScale.x, localScale.y);
-                            const imageDest = [
-                                -piece.relativeImageTranslation.x,
-                                -piece.relativeImageTranslation.y,
-                                gameState.frameWidth,
-                                gameState.frameHeight
-                            ];
+                            let imageDest = [];
+                            if (isMaintainAspectRatio) {
+                                imageDest = [
+                                    -piece.relativeImageTranslation.x + imageDestOffset.x,
+                                    -piece.relativeImageTranslation.y + imageDestOffset.y,
+                                    ...imageDestSize
+                                ];
+                            } else {
+                                imageDest = [
+                                    -piece.relativeImageTranslation.x,
+                                    -piece.relativeImageTranslation.y,
+                                    gameState.frameWidth,
+                                    gameState.frameHeight
+                                ];
+                            }
                             context.drawImage(
                                 imageRef.current,
-                                ...imageSrc,
                                 ...imageDest);
                             context.restore();
-
                             // Draw outline on piece
                             if (piece.isLocked) {
                                 context.strokeStyle = 'red';
@@ -571,7 +583,7 @@ export default function JigsawPuzzle() {
                 context.restore();
             }
         }
-    }, [gameState, isGeneratePuzzlePieces, isShowPlayersPosition, imageReady, puzzlePaths, socket, getLocalScale, lobby]);
+    }, [gameState, isGeneratePuzzlePieces, isShowPlayersPosition, isMaintainAspectRatio, imageReady, puzzlePaths, socket, getLocalScale, lobby]);
 
     useEffect(() => {
         if (imageRef.current) {
@@ -702,7 +714,9 @@ export default function JigsawPuzzle() {
         const canvas = canvasRef.current;
 
         const handleClick = (e) => {
-            if (gameState &&
+            if (((e.type === 'click' && controlStyle === 'click') ||
+                ((e.type === 'mouseup' || e.type === 'mousedown') && controlStyle === 'drag & drop')) &&
+                gameState &&
                 puzzlePaths.length > 0 &&
                 socket &&
                 roomID &&
@@ -767,6 +781,8 @@ export default function JigsawPuzzle() {
             canvas.addEventListener('click', handleClick);
             canvas.addEventListener('contextmenu', handleRightClick);
             canvas.addEventListener('mousemove', throttledMouseHandler);
+            canvas.addEventListener('mouseup', handleClick);
+            canvas.addEventListener('mousedown', handleClick);
         }
 
         return (() => {
@@ -774,9 +790,11 @@ export default function JigsawPuzzle() {
                 canvas.removeEventListener('click', handleClick);
                 canvas.removeEventListener('contextmenu', handleRightClick);
                 canvas.removeEventListener('mousemove', throttledMouseHandler);
+                canvas.removeEventListener('mouseup', handleClick);
+                canvas.removeEventListener('mousedown', handleClick);
             }
         });
-    }, [canvasRef, gameState, puzzlePaths, socket, roomID, selectedPieceID, getLocalScale, isShowPlayersPosition, isShowMyPosition]);
+    }, [canvasRef, gameState, puzzlePaths, socket, roomID, selectedPieceID, getLocalScale, isShowPlayersPosition, isShowMyPosition, controlStyle]);
 
     // Canvas size changes
     useLayoutEffect(() => {
@@ -1314,7 +1332,36 @@ export default function JigsawPuzzle() {
                                     />}
                                 label="Show other players' position"
                             />
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        color='primary'
+                                        checked={isMaintainAspectRatio}
+                                        onChange={(ev) => handleAdvancedToggle(ev, setIsMaintainAspectRatio)}
+                                        name="maintainAspectRatio"
+                                    />}
+                                label="Maintain aspect ratio"
+                            />
                         </FormGroup>
+                        <Grid className={classes.dialogFormFieldClass} container item>
+                            <FormControl variant="outlined" style={{ width: '100%' }}>
+                                <Select
+                                    value={controlStyle}
+                                    onChange={(e) => { setControlStyle(e.target.value) }}
+                                    name="controlStyle"
+                                    inputProps={{ 'aria-label': 'controlStyle' }}
+                                >
+                                    {
+                                        ['click', 'drag & drop'].map(ctrlStyle => {
+                                            return <MenuItem key={'controlStyle_' + ctrlStyle} value={ctrlStyle}>
+                                                {capitalizedWords(ctrlStyle)}
+                                            </MenuItem>
+                                        })
+                                    }
+                                </Select>
+                                <FormHelperText>Control Style</FormHelperText>
+                            </FormControl>
+                        </Grid>
                         <Button
                             className={classes.dialogFormFieldClass}
                             variant="contained"
