@@ -612,10 +612,6 @@ export default function JigsawPuzzle() {
         });
 
         setSocket(newSocket);
-
-        return () => {
-            newSocket.emit('jigsaw:leaveRoom', roomID);
-        };
     }, []);
 
     // Setup socket events
