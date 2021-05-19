@@ -35,6 +35,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
 import SettingsIcon from '@material-ui/icons/Settings';
 import ImageIcon from '@material-ui/icons/Image';
+import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 import PersonIcon from '@material-ui/icons/Person';
 import PublishIcon from '@material-ui/icons/Publish';
 
@@ -316,6 +317,11 @@ const useStyles = makeStyles((theme) => ({
         top: theme.spacing(8),
         right: theme.spacing(2)
     },
+    soundButtonClass: {
+        position: "absolute",
+        top: theme.spacing(14),
+        right: theme.spacing(2)
+    },
     controlClass: {
         background: 'DeepSkyBlue',
     },
@@ -385,6 +391,11 @@ const stockImages = [
     },
 ];
 
+const gameSounds = {
+    click: new Audio(`${serverEndPoint}/audio/click.ogg`),
+    lock: new Audio(`${serverEndPoint}/audio/click_2.ogg`)
+};
+
 export default function JigsawPuzzle() {
     const containerRef = useRef(null);
     const imageRef = useRef(null);
@@ -423,6 +434,7 @@ export default function JigsawPuzzle() {
     const [isShowPlayersPosition, setIsShowPlayersPosition] = useState(true);
     const [isMaintainAspectRatio, setIsMaintainAspectRatio] = useState(false);
     const [controlStyle, setControlStyle] = useState('click');
+    const [isSoundEnabled, setIsSoundEnabled] = useState(true);
 
     const classes = useStyles({ isImageDialogOpen });
 
@@ -593,121 +605,134 @@ export default function JigsawPuzzle() {
         }
     }, []);
 
-    // Socket events
+    // Initialize socket
     useEffect(() => {
-        let roomID;
         const newSocket = io(serverEndPoint, {
             withCredentials: true,
         });
 
         setSocket(newSocket);
 
-        newSocket.on('connect', () => {
-            console.log('Connection to server established');
-        });
-
-        newSocket.on('disconnect', (reason) => {
-            console.log(`Disconnected: ${reason}`);
-        });
-
-        newSocket.on('createdRoom', (newRoomID, lobby) => {
-            roomID = newRoomID;
-            setRoomID(newRoomID);
-            setLobby(lobby);
-            setIsHost(true);
-            hideAllDialogs();
-            setIsSettingDialogOpen(true);
-        });
-
-        newSocket.on('joinedRoom', (newRoomID, imgUrl, lobby, userName, userID, newState) => {
-            if (newRoomID) {
-                roomID = newRoomID;
-                setRoomID(newRoomID);
-                setLobby(lobby);
-                if (newSocket.id === userID) {
-                    setIsHost(false);
-                    setIsGeneratePuzzlePieces(true);
-                    setGameState(newState);
-                    if (imageRef && imageRef.current) imageRef.current.src = imgUrl;
-                    hideAllDialogs();
-                    setIsRoomDialogOpen(true);
-                } else {
-                    setSnackBarSeverity('success');
-                    setSnackBarMessage(`User ${userName} joined the room`);
-                }
-            } else {
-                setSnackBarSeverity("warning");
-                setSnackBarMessage(`Join room error: '${userName}' is already taken. Please choose a different name`);
-            }
-        });
-
-        newSocket.on('finishedGame', (lobby, playTime) => {
-            setLobby(lobby);
-            const duration = moment.duration(playTime);
-            let playTimeStr = '';
-            if (duration.hours() > 0) playTimeStr += duration.hours() + 'h';
-            if (duration.minutes() > 0) playTimeStr += duration.minutes() + 'm';
-            playTimeStr += duration.seconds() + 's';
-            setPlayTime(playTimeStr);
-            setIsResultsDialogOpen(true);
-        });
-
-        newSocket.on('joinRoomError', (errMsg) => {
-            setSnackBarSeverity("warning");
-            setSnackBarMessage(errMsg);
-        });
-
-        newSocket.on('leftRoom', (lobby, userName, newState) => {
-            if (newState) setGameState(newState);
-            setSnackBarSeverity('success');
-            setSnackBarMessage(`User ${userName} left the room`);
-            setLobby(lobby);
-        });
-
-        newSocket.on('initializedGame', (newState) => {
-            setImage(null);
-            setIsGeneratePuzzlePieces(true);
-            setGameState(newState);
-            hideAllDialogs();
-            setIsRoomDialogOpen(true);
-        });
-
-        newSocket.on('serverError', (errMsg) => {
-            setSnackBarSeverity("error");
-            setSnackBarMessage(errMsg);
-        });
-
-        newSocket.on('permissionError', (errMsg) => {
-            setSnackBarSeverity("warning");
-            setSnackBarMessage(errMsg);
-        });
-
-        newSocket.on('restartedGame', (newState) => {
-            setGameState(newState);
-        });
-
-        newSocket.on('selectedPiece', (newState, clientID, pieceID) => {
-            if (newSocket && newSocket.id === clientID) setSelectedPieceId(pieceID);
-            setGameState(newState);
-        });
-
-        newSocket.on('rotatedPiece', (newState) => {
-            setGameState(newState);
-        });
-
-        newSocket.on('mouseMove', (lobby, newState) => {
-            setLobby(lobby);
-            if (newState) setGameState(newState);
-        });
-
-        newSocket.on('updatedPlayerPosition', (lobby) => {
-            setLobby(lobby);
-        });
-
         return () => {
             newSocket.emit('jigsaw:leaveRoom', roomID);
         };
     }, []);
+
+    // Setup socket events
+    useEffect(() => {
+        if (socket) {
+            const newSocket = socket;
+
+            newSocket.on('connect', () => {
+                console.log('Connection to server established');
+            });
+
+            newSocket.on('disconnect', (reason) => {
+                console.log(`Disconnected: ${reason}`);
+            });
+
+            newSocket.on('createdRoom', (newRoomID, lobby) => {
+                setRoomID(newRoomID);
+                setLobby(lobby);
+                setIsHost(true);
+                hideAllDialogs();
+                setIsSettingDialogOpen(true);
+            });
+
+            newSocket.on('joinedRoom', (newRoomID, imgUrl, lobby, userName, userID, newState) => {
+                if (newRoomID) {
+                    setRoomID(newRoomID);
+                    setLobby(lobby);
+                    if (newSocket.id === userID) {
+                        setIsHost(false);
+                        setIsGeneratePuzzlePieces(true);
+                        setGameState(newState);
+                        if (imageRef && imageRef.current) imageRef.current.src = imgUrl;
+                        hideAllDialogs();
+                        setIsRoomDialogOpen(true);
+                    } else {
+                        setSnackBarSeverity('success');
+                        setSnackBarMessage(`User ${userName} joined the room`);
+                    }
+                } else {
+                    setSnackBarSeverity("warning");
+                    setSnackBarMessage(`Join room error: '${userName}' is already taken. Please choose a different name`);
+                }
+            });
+
+            newSocket.on('finishedGame', (lobby, playTime) => {
+                setLobby(lobby);
+                const duration = moment.duration(playTime);
+                let playTimeStr = '';
+                if (duration.hours() > 0) playTimeStr += duration.hours() + 'h';
+                if (duration.minutes() > 0) playTimeStr += duration.minutes() + 'm';
+                playTimeStr += duration.seconds() + 's';
+                setPlayTime(playTimeStr);
+                setIsResultsDialogOpen(true);
+            });
+
+            newSocket.on('joinRoomError', (errMsg) => {
+                setSnackBarSeverity("warning");
+                setSnackBarMessage(errMsg);
+            });
+
+            newSocket.on('leftRoom', (lobby, userName, newState) => {
+                if (newState) setGameState(newState);
+                setSnackBarSeverity('success');
+                setSnackBarMessage(`User ${userName} left the room`);
+                setLobby(lobby);
+            });
+
+            newSocket.on('initializedGame', (newState) => {
+                setImage(null);
+                setIsGeneratePuzzlePieces(true);
+                setGameState(newState);
+                hideAllDialogs();
+                setIsRoomDialogOpen(true);
+            });
+
+            newSocket.on('serverError', (errMsg) => {
+                setSnackBarSeverity("error");
+                setSnackBarMessage(errMsg);
+            });
+
+            newSocket.on('permissionError', (errMsg) => {
+                setSnackBarSeverity("warning");
+                setSnackBarMessage(errMsg);
+            });
+
+            newSocket.on('restartedGame', (newState) => {
+                setGameState(newState);
+            });
+
+            newSocket.on('selectedPiece', (newState, clientID, pieceID, scoreUpdate) => {
+                if (newSocket && newSocket.id === clientID) setSelectedPieceId(pieceID);
+                if (isSoundEnabled) {
+                    console.log('sound is enabled');
+                    scoreUpdate ? gameSounds.lock.play() : gameSounds.click.play();
+                }
+                setGameState(newState);
+            });
+
+            newSocket.on('rotatedPiece', (newState) => {
+                if (isSoundEnabled) gameSounds.click.play();
+                setGameState(newState);
+            });
+
+            newSocket.on('mouseMove', (lobby, newState) => {
+                setLobby(lobby);
+                if (newState) setGameState(newState);
+            });
+
+            newSocket.on('updatedPlayerPosition', (lobby) => {
+                setLobby(lobby);
+            });
+        }
+
+        return () => {
+            if (socket) socket.removeAllListeners();
+        }
+    }, [socket, isSoundEnabled]);
 
     // Mouse / keyboard interactions
     useEffect(() => {
@@ -1030,10 +1055,17 @@ export default function JigsawPuzzle() {
             </IconButton>
             <IconButton
                 className={classes.imageButtonClass}
-                aria-label="settings"
+                aria-label="image"
                 color={isImageDialogOpen ? "secondary" : "primary"}
                 onClick={() => { hideAllDialogs(); setIsImageDialogOpen(!isImageDialogOpen) }}>
                 <ImageIcon />
+            </IconButton>
+            <IconButton
+                className={classes.soundButtonClass}
+                aria-label="sound"
+                color={isSoundEnabled ? "primary" : "default"}
+                onClick={() => { setIsSoundEnabled(!isSoundEnabled) }}>
+                <VolumeUpIcon />
             </IconButton>
             <Grid className={classes.canvasGridClass} container item>
                 <canvas ref={canvasRef} />
